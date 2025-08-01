@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HealthCheckModule } from 'src/healthCheck/healthCheck.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { HealthCheckModule } from 'src/healthCheck/healthCheck.module';
       },
     }),
     HealthCheckModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
