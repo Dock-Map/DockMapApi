@@ -8,8 +8,11 @@ export class HealthCheckService {
     try {
       await this.connection.query('SELECT 1');
       return 'Connected to DB!';
-    } catch (error) {
-      return `DB connection error: ${error.message}`;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return `DB connection error: ${error.message}`;
+      }
+      return 'Unknown error occurred';
     }
   }
 }
