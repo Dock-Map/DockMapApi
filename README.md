@@ -97,3 +97,62 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# DockMapApi
+
+## Установка зависимостей
+
+```bash
+pnpm install
+```
+
+## Настройка Twilio для SMS
+
+1. Создайте аккаунт на [Twilio](https://www.twilio.com/)
+2. Получите Account SID и Auth Token
+3. Купите номер телефона в Twilio
+4. Создайте файл `.env` со следующими переменными:
+
+```env
+TWILIO_ACCOUNT_SID=your_account_sid_here
+TWILIO_AUTH_TOKEN=your_auth_token_here
+TWILIO_PHONE_NUMBER=your_twilio_phone_number_here
+```
+
+## Запуск приложения
+
+```bash
+# Разработка
+pnpm run start:dev
+
+# Продакшн
+pnpm run start:prod
+```
+
+## API Endpoints
+
+### SMS верификация
+
+- `POST /user/send-sms` - Отправить SMS с кодом верификации
+- `POST /user/verify-sms` - Проверить SMS код
+
+### Примеры запросов
+
+#### Отправка SMS
+
+```json
+POST /user/send-sms
+{
+  "phoneNumber": "+79001234567"
+}
+```
+
+#### Проверка кода
+
+```json
+POST /user/verify-sms
+{
+  "phoneNumber": "+79001234567",
+  "code": "123456"
+}
+```
