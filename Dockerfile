@@ -2,14 +2,14 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+
 COPY *.json ./
 
-RUN pnpm i
+RUN yarn 
 
 COPY . .
 
-RUN pnpm build
+RUN yarn build
 
 ARG NODE_ENV=development
 #COPY .env.$NODE_ENV .env
