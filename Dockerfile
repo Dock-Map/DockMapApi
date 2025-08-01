@@ -4,16 +4,16 @@ WORKDIR /app
 
 COPY *.json ./
 
-RUN yarn
+RUN pnpm i
 
 COPY . .
 
-RUN yarn build
+RUN pnpm build
 
 ARG NODE_ENV=development
 #COPY .env.$NODE_ENV .env
 
 EXPOSE 3000
 
-# CMD ["sh", "-c", "yarn migration:run && yarn start:prod"]   это уже на прод будет 
-CMD ["sh", "-c", "yarn start:prod"] 
+# CMD ["sh", "-c", "pnpm migration:run && pnpm start:prod"]   это уже на прод будет 
+CMD ["sh", "-c", "pnpm start:prod"] 
