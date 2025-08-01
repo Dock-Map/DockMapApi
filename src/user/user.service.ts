@@ -41,10 +41,10 @@ export class UserService {
     };
   }
 
-  async verifyCode(
+  verifyCode(
     phoneNumber: string,
     code: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): { success: boolean; message: string } {
     const storedData = this.verificationCodes.get(phoneNumber);
 
     if (!storedData) {
