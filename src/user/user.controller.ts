@@ -26,7 +26,7 @@ export class UserController {
   @ApiOperation({ summary: 'Проверить SMS код' })
   @ApiResponse({ status: 200, description: 'Код проверен' })
   @ApiResponse({ status: 400, description: 'Неверный код' })
-  async verifySms(@Body() verifySmsDto: VerifySmsDto) {
+  verifySms(@Body() verifySmsDto: VerifySmsDto) {
     return this.userService.verifyCode(
       verifySmsDto.phoneNumber,
       verifySmsDto.code,
