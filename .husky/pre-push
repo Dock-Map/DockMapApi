@@ -1,3 +1,3 @@
-pnpm lint:check
+yarn lint:check
 
-pnpm ts:check
+yarn ts:check
