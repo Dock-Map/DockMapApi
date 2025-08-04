@@ -11,6 +11,7 @@
     "start": "nest start",
     "removeBd": "docker rm dock",
     "setupBd": "docker run --name dock -p 5432:5432 -e POSTGRES_PASSWORD=dock -e POSTGRES_USER=dock -e POSTGRES_DB=dock -d postgres",
+    "setupBdProd": "docker run --name dock_prod -p 5432:5432 -e POSTGRES_PASSWORD=dock_prod -e POSTGRES_USER=dock_prod -e POSTGRES_DB=dock_prod -d postgres",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
