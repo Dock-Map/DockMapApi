@@ -76,12 +76,12 @@ export class SmsService {
 
   // Метод для очистки истекших кодов (можно запускать по расписанию)
   cleanupExpiredCodes(): void {
-    console.log('SMS codes cleanup not implemented yet');
+    console.log('Twilio Verify automatically manages code expiration');
   }
 
   // Только для тестирования - получение кода верификации
   getVerificationCode(): { code: string } | null {
-    console.log('SMS codes are not stored in local database');
+    console.log('Twilio Verify codes are not stored in local database');
     return null;
   }
 }

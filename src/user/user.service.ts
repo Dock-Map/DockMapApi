@@ -4,6 +4,12 @@ import { Repository } from 'typeorm';
 import { User, AuthProvider } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 
+interface City {
+  id: number;
+  name: string;
+  region?: string;
+}
+
 @Injectable()
 export class UserService {
   constructor(
@@ -70,5 +76,16 @@ export class UserService {
 
   async remove(id: string): Promise<void> {
     await this.userRepository.delete(id);
+  }
+
+  getCities(): City[] {
+    return [
+      { id: 1, name: 'Санкт-Петербург', region: 'Ленинградская область' },
+      { id: 2, name: 'Москва', region: 'Московская область' },
+      { id: 3, name: 'Пермь', region: 'Пермский край' },
+      { id: 4, name: 'Сочи', region: 'Краснодарский край' },
+      { id: 5, name: 'Крым', region: 'Республика Крым' },
+      { id: 6, name: 'Самара', region: 'Самарская область' },
+    ];
   }
 }
