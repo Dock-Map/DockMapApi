@@ -19,14 +19,6 @@ import { VerificationCode } from 'src/auth/entities/verification-code.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        console.log({
-          host: configService.get<string>('DATABASE_HOST'),
-          port: configService.get<number>('DATABASE_PORT'),
-          username: configService.get<string>('DATABASE_USER'),
-          password: configService.get<string>('DATABASE_PASSWORD'),
-          database: configService.get<string>('DATABASE_NAME'),
-        });
-
         return {
           type: 'postgres',
           host: configService.get<string>('DATABASE_HOST'),
