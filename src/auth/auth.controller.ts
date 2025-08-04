@@ -44,7 +44,7 @@ export class AuthController {
 
   @Post('sms/verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Проверить SMS код и авторизоваться' })
+  @ApiOperation({ summary: 'Проверить SMS код и авторизоваddться' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Неверный код' })
   async verifySms(@Body() verifySmsDto: VerifySmsDto) {
