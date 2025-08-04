@@ -83,10 +83,10 @@ export class SmsService {
 
   // Только для тестирования - получение кода верификации
   // В Twilio Verify коды не хранятся в нашей БД, поэтому возвращаем null
-  async getVerificationCode(
-    phoneNumber: string,
-  ): Promise<{ code: string } | null> {
-    console.log('Twilio Verify codes are not stored in local database');
-    return null;
-  }
+  // async getVerificationCode(
+  //   phoneNumber: string,
+  // ): Promise<{ code: string } | null> {
+  //   console.log('Twilio Verify codes are not stored in local database');
+  //   return null;
+  // }
 }
