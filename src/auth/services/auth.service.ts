@@ -125,14 +125,12 @@ export class AuthService {
     return { message: result.message };
   }
 
-  async cleanupExpiredCodes(): Promise<void> {
-    await this.smsService.cleanupExpiredCodes();
+  cleanupExpiredCodes(): void {
+    this.smsService.cleanupExpiredCodes();
   }
 
-  async getVerificationCode(
-    phoneNumber: string,
-  ): Promise<{ code: string } | null> {
-    return this.smsService.getVerificationCode(phoneNumber);
+  getVerificationCode(): { code: string } | null {
+    return this.smsService.getVerificationCode();
   }
 
   private async generateAuthTokens(user: User): Promise<AuthResponseDto> {

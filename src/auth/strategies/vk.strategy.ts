@@ -10,7 +10,6 @@ export class VkStrategy extends PassportStrategy(Strategy, 'vkontakte') {
     private configService: ConfigService,
     private authService: AuthService,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       authorizationURL: 'https://oauth.vk.com/authorize',
       tokenURL: 'https://oauth.vk.com/access_token',

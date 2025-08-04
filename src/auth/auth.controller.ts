@@ -8,7 +8,6 @@ import {
   Get,
   Req,
   Delete,
-  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -132,8 +131,8 @@ export class AuthController {
   @Delete('cleanup-expired-codes')
   @ApiOperation({ summary: 'Очистить истекшие коды верификации' })
   @ApiResponse({ status: 200, description: 'Истекшие коды удалены' })
-  async cleanupExpiredCodes() {
-    await this.authService.cleanupExpiredCodes();
+  cleanupExpiredCodes() {
+    this.authService.cleanupExpiredCodes();
     return { message: 'Истекшие коды удалены' };
   }
 
@@ -144,8 +143,8 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: 'Код получен' })
   @ApiResponse({ status: 404, description: 'Код не найден' })
-  async getVerificationCode(@Param('phoneNumber') phoneNumber: string) {
-    return this.authService.getVerificationCode(phoneNumber);
+  getVerificationCode() {
+    return this.authService.getVerificationCode();
   }
 
   @ApiBearerAuth('JWT')

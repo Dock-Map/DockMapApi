@@ -75,18 +75,13 @@ export class SmsService {
   }
 
   // Метод для очистки истекших кодов (можно запускать по расписанию)
-  async cleanupExpiredCodes(): Promise<void> {
-    // Twilio Verify автоматически управляет истечением кодов
-    // Этот метод оставлен для совместимости, но не выполняет действий
-    console.log('Twilio Verify automatically manages code expiration');
+  cleanupExpiredCodes(): void {
+    console.log('SMS codes cleanup not implemented yet');
   }
 
   // Только для тестирования - получение кода верификации
-  // В Twilio Verify коды не хранятся в нашей БД, поэтому возвращаем null
-  // async getVerificationCode(
-  //   phoneNumber: string,
-  // ): Promise<{ code: string } | null> {
-  //   console.log('Twilio Verify codes are not stored in local database');
-  //   return null;
-  // }
+  getVerificationCode(): { code: string } | null {
+    console.log('SMS codes are not stored in local database');
+    return null;
+  }
 }
