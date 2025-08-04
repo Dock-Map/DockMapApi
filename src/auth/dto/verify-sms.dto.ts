@@ -7,8 +7,8 @@ export class VerifySmsDto {
   @Matches(/^\+[1-9]\d{1,14}$/, { message: 'Неверный формат номера телефона' })
   phoneNumber: string;
 
-  @ApiProperty({ example: '123456', description: 'Код верификации' })
+  @ApiProperty({ example: '4343', description: 'Код верификации' })
   @IsString()
-  @Length(6, 6)
+  @Length(4, 4)
   code: string;
 }

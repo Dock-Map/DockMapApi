@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
 import { TokenService } from './services/token.service';
+import { SmsService } from './services/sms.service';
 import { expiresAccessIn } from 'src/shared/constants';
 import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { UserModule } from '../user/user.module';
@@ -29,11 +30,12 @@ import { VkStrategy } from './strategies/vk.strategy';
   providers: [
     AuthService,
     TokenService,
+    SmsService,
     JwtStrategy,
     JwtRefreshTokenStrategy,
     TelegramStrategy,
     VkStrategy,
   ],
-  exports: [AuthService, TokenService],
+  exports: [AuthService, TokenService, SmsService],
 })
 export class AuthModule {}

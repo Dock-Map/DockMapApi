@@ -7,7 +7,7 @@ import { HealthCheckModule } from 'src/healthCheck/healthCheck.module';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { User } from 'src/user/entities/user.entity';
-import { VerificationCode } from 'src/user/entities/verification-code.entity';
+import { VerificationCode } from 'src/auth/entities/verification-code.entity';
 
 @Module({
   imports: [

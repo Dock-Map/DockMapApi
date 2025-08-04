@@ -7,6 +7,8 @@ import {
   UseGuards,
   Get,
   Req,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -117,8 +119,6 @@ export class AuthController {
     return this.authService.refreshTokens(body.refreshToken);
   }
 
-  // === ЗАЩИЩЕННЫЕ ЭНДПОИНТЫ (с guards) ===
-
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -127,6 +127,25 @@ export class AuthController {
   async logout(@Req() req: AuthenticatedRequest) {
     await this.authService.logout(req.user.user.id);
     return { message: 'Успешный выход' };
+  }
+
+  @Delete('cleanup-expired-codes')
+  @ApiOperation({ summary: 'Очистить истекшие коды верификации' })
+  @ApiResponse({ status: 200, description: 'Истекшие коды удалены' })
+  async cleanupExpiredCodes() {
+    await this.authService.cleanupExpiredCodes();
+    return { message: 'Истекшие коды удалены' };
+  }
+
+  // Только для тестирования - получение кода из базы данных
+  @Get('verification-codes/:phoneNumber')
+  @ApiOperation({
+    summary: 'Получить код верификации (только для тестирования)',
+  })
+  @ApiResponse({ status: 200, description: 'Код получен' })
+  @ApiResponse({ status: 404, description: 'Код не найден' })
+  async getVerificationCode(@Param('phoneNumber') phoneNumber: string) {
+    return this.authService.getVerificationCode(phoneNumber);
   }
 
   @ApiBearerAuth('JWT')

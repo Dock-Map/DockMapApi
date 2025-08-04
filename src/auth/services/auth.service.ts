@@ -4,6 +4,7 @@ import { TokenService } from './token.service';
 import { UserService } from '../../user/user.service';
 import { AuthProvider, User } from '../../user/entities/user.entity';
 import { AuthResponseDto } from '../dto/auth-response.dto';
+import { SmsService } from './sms.service';
 
 // Интерфейс для данных Telegram (соответствует TelegramAuthDto)
 interface TelegramAuthData {
@@ -30,6 +31,7 @@ export class AuthService {
   constructor(
     private tokenService: TokenService,
     private userService: UserService,
+    private smsService: SmsService,
   ) {}
 
   // Универсальная авторизация через SMS
@@ -38,7 +40,7 @@ export class AuthService {
     code: string,
   ): Promise<AuthResponseDto> {
     // Проверка SMS кода
-    const verificationResult = await this.userService.verifyCode(phone, code);
+    const verificationResult = await this.smsService.verifyCode(phone, code);
     if (!verificationResult.success) {
       throw new UnauthorizedException(verificationResult.message);
     }
@@ -119,8 +121,18 @@ export class AuthService {
   }
 
   async sendSms(phone: string): Promise<{ message: string }> {
-    const result = await this.userService.sendVerificationCode(phone);
+    const result = await this.smsService.sendVerificationCode(phone);
     return { message: result.message };
+  }
+
+  async cleanupExpiredCodes(): Promise<void> {
+    await this.smsService.cleanupExpiredCodes();
+  }
+
+  async getVerificationCode(
+    phoneNumber: string,
+  ): Promise<{ code: string } | null> {
+    return this.smsService.getVerificationCode(phoneNumber);
   }
 
   private async generateAuthTokens(user: User): Promise<AuthResponseDto> {
