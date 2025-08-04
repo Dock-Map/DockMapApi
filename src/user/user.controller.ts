@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { SendSmsDto } from './dto/send-sms.dto';
@@ -31,5 +31,24 @@ export class UserController {
       verifySmsDto.phoneNumber,
       verifySmsDto.code,
     );
+  }
+
+  @Delete('cleanup-expired-codes')
+  @ApiOperation({ summary: 'Очистить истекшие коды верификации' })
+  @ApiResponse({ status: 200, description: 'Истекшие коды удалены' })
+  async cleanupExpiredCodes() {
+    await this.userService.cleanupExpiredCodes();
+    return { message: 'Истекшие коды удалены' };
+  }
+
+  // Только для тестирования - получение кода из базы данных
+  @Get('verification-codes/:phoneNumber')
+  @ApiOperation({
+    summary: 'Получить код верификации (только для тестирования)',
+  })
+  @ApiResponse({ status: 200, description: 'Код получен' })
+  @ApiResponse({ status: 404, description: 'Код не найден' })
+  async getVerificationCode(@Param('phoneNumber') phoneNumber: string) {
+    return this.userService.getVerificationCode(phoneNumber);
   }
 }
