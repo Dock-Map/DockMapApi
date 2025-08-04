@@ -9,6 +9,7 @@
 
 Создайте файл `.env` со следующими переменными:
 
+
 ```env
 # JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key
