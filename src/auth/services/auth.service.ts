@@ -145,13 +145,7 @@ export class AuthService {
       // Дополнительная валидация access token (опционально)
       try {
         await this.tokenService.verifyAccessToken(accessToken);
-      } catch (error) {
-        // Access token может быть истекшим, это нормально для refresh
-        console.log(
-          'Access token validation failed (expected for refresh):',
-          error.message,
-        );
-      }
+      } catch (error) {}
 
       // Проверяем валидность refresh token
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
