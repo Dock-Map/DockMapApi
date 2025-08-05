@@ -21,6 +21,7 @@ import { AuthService } from './services/auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { SendSmsDto } from './dto/send-sms.dto';
 import { VerifySmsDto } from './dto/verify-sms.dto';
+import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
@@ -128,8 +129,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Обновить access token' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Недействительный refresh token' })
-  async refreshTokens(@Body() body: { refreshToken: string }) {
-    return this.authService.refreshTokens(body.refreshToken);
+  async refreshTokens(@Body() refreshTokensDto: RefreshTokensDto) {
+    return this.authService.refreshTokens(
+      refreshTokensDto.accessToken,
+      refreshTokensDto.refreshToken,
+    );
   }
 
   @Post('logout')

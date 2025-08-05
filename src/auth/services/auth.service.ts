@@ -137,8 +137,18 @@ export class AuthService {
     return this.generateAuthTokens(user);
   }
 
-  async refreshTokens(refreshToken: string): Promise<AuthResponseDto> {
+  async refreshTokens(
+    accessToken: string,
+    refreshToken: string,
+  ): Promise<AuthResponseDto> {
     try {
+      // Дополнительная валидация access token (опционально)
+      try {
+        await this.tokenService.verifyAccessToken(accessToken);
+      } catch {
+        // Access token может быть истекшим, это нормально для refresh
+      }
+
       // Проверяем валидность refresh token
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
       const user = await this.userService.findById(payload.userId);

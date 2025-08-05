@@ -41,4 +41,12 @@ export class TokenService {
       secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
     });
   }
+
+  async verifyAccessToken(
+    accessToken: string,
+  ): Promise<{ userId: string; email: string }> {
+    return this.jwtService.verifyAsync(accessToken, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+    });
+  }
 }
