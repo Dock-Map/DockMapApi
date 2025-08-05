@@ -4,7 +4,7 @@ import { Strategy } from 'passport-custom';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../services/auth.service';
 import { AuthResponseDto } from '../dto/auth-response.dto';
-import { createHash } from 'crypto';
+import { createHmac } from 'crypto';
 import { Request } from 'express';
 
 interface TelegramAuthData {
@@ -94,6 +94,7 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
       return false;
     }
 
+    // Создаем строку для проверки в правильном порядке
     const dataCheckString = Object.keys(userData)
       .sort()
       .map((key) => `${key}=${userData[key as keyof TelegramUserData]}`)
@@ -104,11 +105,10 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
       return false;
     }
 
-    const secretKey = createHash('sha256').update(botToken).digest();
-
-    const hmac = createHash('sha256')
+    // Правильная валидация подписи Telegram
+    // Используем HMAC-SHA256 с bot token как ключом
+    const hmac = createHmac('sha256', botToken)
       .update(dataCheckString)
-      .update(secretKey)
       .digest('hex');
 
     return hmac === hash;
