@@ -145,7 +145,9 @@ export class AuthService {
       // Дополнительная валидация access token (опционально)
       try {
         await this.tokenService.verifyAccessToken(accessToken);
-      } catch (error) {}
+      } catch {
+        // Access token может быть истекшим, это нормально для refresh
+      }
 
       // Проверяем валидность refresh token
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
