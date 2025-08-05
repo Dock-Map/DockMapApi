@@ -338,7 +338,7 @@ export class SmsService {
             console.log('SMS.RU callback received', { error, result });
 
             // SMS.RU возвращает результат в поле error, а не result
-            const response = error || result;
+            const response: SmsRuResponse | SmsRuApiResult | null = error || result;
 
             if (response && 'code' in response && response.code === '100') {
               console.log('SMS.RU success:', response);
