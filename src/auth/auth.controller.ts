@@ -71,6 +71,8 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Неверная подпись Telegram' })
   telegramCallback(@GetUser() user: AuthResponseDto) {
+    console.log(user, 'USER');
+
     return user;
   }
 

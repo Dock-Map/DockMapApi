@@ -45,7 +45,7 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
   ): Promise<void> {
     try {
       const tgAuthResult = req.query.tgAuthResult as string;
-
+      console.log(tgAuthResult, 'tgAuthResult');
       if (!tgAuthResult) {
         return done(new Error('Missing tgAuthResult parameter'), undefined);
       }
@@ -65,6 +65,7 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
       const telegramData = userData;
 
       const isValidSignature = this.verifyTelegramSignature(telegramData);
+      console.log(isValidSignature, 'isValidSignature');
 
       if (!isValidSignature) {
         return done(new Error('Invalid Telegram signature'), undefined);
@@ -78,6 +79,7 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
         hash: telegramData.hash,
       });
 
+      console.log(authResult, 'authResult');
       done(null, authResult);
     } catch (error) {
       done(error, undefined);
