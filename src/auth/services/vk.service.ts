@@ -42,7 +42,9 @@ export class VkService {
       console.log(response.data, 'VK token response');
 
       return response.data as VkTokenResponse;
-    } catch {
+    } catch (error: any) {
+      console.log(error, 'VK token error');
+
       throw new UnauthorizedException('Не удалось получить токен от VK');
     }
   }
