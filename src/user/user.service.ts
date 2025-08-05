@@ -3,8 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, AuthProvider } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserRole } from 'src/shared/types/user.role';
 
 interface City {
+  id: number;
+  name: string;
+  region?: string;
+}
+
+interface UserCity {
   id: number;
   name: string;
   region?: string;
@@ -73,6 +80,29 @@ export class UserService {
     });
   }
 
+  async completeRegistration(
+    userId: string,
+    cityId: number,
+    role: UserRole.OWNER | UserRole.CLUB_ADMIN,
+  ): Promise<User> {
+    const city = this.getCityById(cityId);
+    if (!city) {
+      throw new Error('City not found');
+    }
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Обновляем пользователя с выбранным городом и ролью
+    user.role = role;
+    // Здесь можно добавить поле для города пользователя, если нужно
+    // user.cityId = cityId;
+
+    return this.userRepository.save(user);
+  }
+
   async update(id: string, updateUserDto: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
@@ -94,5 +124,10 @@ export class UserService {
       { id: 5, name: 'Крым', region: 'Республика Крым' },
       { id: 6, name: 'Самара', region: 'Самарская область' },
     ];
+  }
+
+  getCityById(cityId: number): City | null {
+    const cities = this.getCities();
+    return cities.find((city) => city.id === cityId) || null;
   }
 }

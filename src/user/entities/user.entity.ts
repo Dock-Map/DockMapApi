@@ -21,7 +21,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.OWNER,
+    nullable: true, // Роль может быть null для новых пользователей
   })
   role: UserRole;
 
