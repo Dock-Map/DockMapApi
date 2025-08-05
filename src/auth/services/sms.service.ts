@@ -85,28 +85,15 @@ export class SmsService {
       const message = `Ваш код подтверждения: ${code}`;
 
       // Проверяем режим тестирования
-      const isTestMode =
-        this.configService?.get<string>('NODE_ENV') === 'development' &&
-        this.configService?.get<string>('SMS_TEST_MODE') === 'true';
-      console.log(isTestMode, 'isTestMode');
-      if (isTestMode) {
-        // Сохраняем код в базу данных даже в тестовом режиме
-        const verificationCode = this.verificationCodeRepository.create({
-          phoneNumber: formattedPhone,
-          code,
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 минут
-          isUsed: false,
-        });
+      const nodeEnv =
+        this.configService?.get<string>('NODE_ENV') || process.env.NODE_ENV;
+      const smsTestMode =
+        this.configService?.get<string>('SMS_TEST_MODE') ||
+        process.env.SMS_TEST_MODE;
 
-        await this.verificationCodeRepository.save(verificationCode);
+      const isTestMode = nodeEnv === 'development' && smsTestMode === 'true';
 
-        return {
-          success: true,
-          message: `Код отправлен (тестовый режим): ${code}`,
-        };
-      }
-
-      // Сохраняем код в базу данных перед отправкой
+      // Сохраняем код в базу данных
       const verificationCode = this.verificationCodeRepository.create({
         phoneNumber: formattedPhone,
         code,
@@ -115,16 +102,25 @@ export class SmsService {
       });
 
       await this.verificationCodeRepository.save(verificationCode);
-      console.log(verificationCode, 'verificationCode');
-      // Отправляем SMS через SMS.RU API используя callback
-      const result = await this.promisifySmsRuCall(this.smsClient.sms_send, {
-        to: formattedPhone,
-        text: message,
-        from: this.from,
-      });
-      console.log(result, 'result');
 
-      if (result.status === 'OK') {
+      if (!isTestMode) {
+        return {
+          success: true,
+          message: `Код отправлен (тестовый режим): ${code}`,
+        };
+      }
+
+      // Отправляем SMS через SMS.RU API используя callback
+      const result = await this.promisifySmsRuCall(
+        this.smsClient.sms_send.bind(this.smsClient),
+        {
+          to: formattedPhone,
+          text: message,
+          from: this?.from || 'SMS.RU',
+        },
+      );
+
+      if (result.code === '100') {
         return {
           success: true,
           message: 'Код отправлен',
@@ -316,16 +312,34 @@ export class SmsService {
     ) => void,
     params: any,
   ): Promise<SmsRuApiResult> {
+    console.log('promisifySmsRuCall started', {
+      method: typeof method,
+      params,
+    });
+
     return new Promise((resolve, reject) => {
-      method(params, (error: any, result: SmsRuApiResult) => {
-        if (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : 'SMS.RU API error';
-          reject(new Error(errorMsg));
-        } else {
-          resolve(result);
-        }
-      });
+      try {
+        method(params, (error: any, result: SmsRuApiResult) => {
+          console.log('SMS.RU callback received', { error, result });
+
+          // SMS.RU возвращает результат в поле error, а не result
+          const response = error || result;
+
+          if (response && response.code === '100') {
+            console.log('SMS.RU success:', response);
+            resolve(response);
+          } else if (error && error.code && error.code !== '100') {
+            console.log('SMS.RU error:', error);
+            reject(new Error(error.description || 'SMS.RU API error'));
+          } else {
+            console.log('SMS.RU unknown response:', response);
+            reject(new Error('Unknown SMS.RU response'));
+          }
+        });
+      } catch (err) {
+        console.log('promisifySmsRuCall exception:', err);
+        reject(err);
+      }
     });
   }
 
