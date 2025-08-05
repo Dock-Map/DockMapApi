@@ -7,12 +7,6 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Получить информацию о пользователе' })
-  findMe() {
-    return 'me';
-  }
-
   @Get('cities')
   @ApiOperation({ summary: 'Получить список доступных городов' })
   @ApiResponse({

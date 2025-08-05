@@ -3,6 +3,7 @@ import { compare, hash } from 'bcrypt';
 import { TokenService } from './token.service';
 import { UserService } from '../../user/user.service';
 import { AuthProvider, User } from '../../user/entities/user.entity';
+import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
 
@@ -38,6 +39,7 @@ export class AuthService {
   async authenticateWithSms(
     phone: string,
     code: string,
+    ipAddress?: string,
   ): Promise<AuthResponseDto> {
     // Проверка SMS кода
     const verificationResult = await this.smsService.verifyCode(phone, code);
@@ -54,10 +56,16 @@ export class AuthService {
         name: `User_${phone.slice(-4)}`,
         authProvider: AuthProvider.SMS,
         isPhoneVerified: true,
+        role: UserRole.OWNER,
       });
     } else {
       // Обновляем статус верификации
       await this.userService.updatePhoneVerification(user.id, true);
+    }
+
+    // Обновляем информацию о входе
+    if (ipAddress) {
+      await this.userService.updateLastLogin(user.id, ipAddress);
     }
 
     return this.generateAuthTokens(user);
@@ -65,6 +73,7 @@ export class AuthService {
 
   async authenticateWithTelegram(
     telegramData: TelegramAuthData,
+    ipAddress?: string,
   ): Promise<AuthResponseDto> {
     const { id, username, first_name, last_name } = telegramData;
 
@@ -73,17 +82,27 @@ export class AuthService {
     if (!user) {
       user = await this.userService.create({
         name: `${first_name} ${last_name || ''}`.trim(),
+        phone: `telegram_${id}`, // Временный номер для Telegram
         authProvider: AuthProvider.TELEGRAM,
         providerId: id.toString(),
         telegramUsername: username,
+        role: UserRole.OWNER,
       });
+    }
+
+    // Обновляем информацию о входе
+    if (ipAddress) {
+      await this.userService.updateLastLogin(user.id, ipAddress);
     }
 
     return this.generateAuthTokens(user);
   }
 
   // Авторизация через VK
-  async authenticateWithVk(vkData: VkAuthData): Promise<AuthResponseDto> {
+  async authenticateWithVk(
+    vkData: VkAuthData,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
     const { id, first_name, last_name, email } = vkData;
 
     let user = await this.userService.findByVkId(id);
@@ -91,11 +110,18 @@ export class AuthService {
     if (!user) {
       user = await this.userService.create({
         name: `${first_name} ${last_name}`.trim(),
+        phone: `vk_${id}`, // Временный номер для VK
         email,
         authProvider: AuthProvider.VK,
         providerId: id,
         vkId: id,
+        role: UserRole.OWNER,
       });
+    }
+
+    // Обновляем информацию о входе
+    if (ipAddress) {
+      await this.userService.updateLastLogin(user.id, ipAddress);
     }
 
     return this.generateAuthTokens(user);

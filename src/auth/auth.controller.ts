@@ -44,13 +44,16 @@ export class AuthController {
 
   @Post('sms/verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Проверить SMS код и авторизоваddться' })
+  @ApiOperation({ summary: 'Проверить SMS код и авторизоваться' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Неверный код' })
-  async verifySms(@Body() verifySmsDto: VerifySmsDto) {
+  async verifySms(@Body() verifySmsDto: VerifySmsDto, @Req() req: Request) {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
     return this.authService.authenticateWithSms(
       verifySmsDto.phoneNumber,
       verifySmsDto.code,
+      ipAddress,
     );
   }
 
@@ -82,7 +85,9 @@ export class AuthController {
   @Post('telegram/mock')
   @ApiOperation({ summary: 'Моковая авторизация через Telegram' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  async telegramMockAuth(@Body() body: TelegramAuthDto) {
+  async telegramMockAuth(@Body() body: TelegramAuthDto, @Req() req: Request) {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
     // Преобразуем данные для соответствия интерфейсу AuthService
     const telegramData = {
       id: body.id,
@@ -90,13 +95,15 @@ export class AuthController {
       first_name: body.first_name,
       last_name: body.last_name || '',
     };
-    return this.authService.authenticateWithTelegram(telegramData);
+    return this.authService.authenticateWithTelegram(telegramData, ipAddress);
   }
 
   @Post('vk/mock')
   @ApiOperation({ summary: 'Моковая авторизация через VK' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  async vkMockAuth(@Body() body: VkAuthDto) {
+  async vkMockAuth(@Body() body: VkAuthDto, @Req() req: Request) {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
     // Преобразуем данные для соответствия интерфейсу AuthService
     const vkData = {
       id: body.id,
@@ -105,7 +112,7 @@ export class AuthController {
       screen_name: body.screen_name,
       email: body.email,
     };
-    return this.authService.authenticateWithVk(vkData);
+    return this.authService.authenticateWithVk(vkData, ipAddress);
   }
 
   // Обновление токенов
@@ -126,25 +133,6 @@ export class AuthController {
   async logout(@Req() req: AuthenticatedRequest) {
     await this.authService.logout(req.user.user.id);
     return { message: 'Успешный выход' };
-  }
-
-  @Delete('cleanup-expired-codes')
-  @ApiOperation({ summary: 'Очистить истекшие коды верификации' })
-  @ApiResponse({ status: 200, description: 'Истекшие коды удалены' })
-  cleanupExpiredCodes() {
-    this.authService.cleanupExpiredCodes();
-    return { message: 'Истекшие коды удалены' };
-  }
-
-  // Только для тестирования - получение кода из базы данных
-  @Get('verification-codes/:phoneNumber')
-  @ApiOperation({
-    summary: 'Получить код верификации (только для тестирования)',
-  })
-  @ApiResponse({ status: 200, description: 'Код получен' })
-  @ApiResponse({ status: 404, description: 'Код не найден' })
-  getVerificationCode() {
-    return this.authService.getVerificationCode();
   }
 
   @ApiBearerAuth('JWT')

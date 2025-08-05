@@ -1,22 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEnum } from 'class-validator';
 import { AuthProvider } from '../entities/user.entity';
+import { UserRole } from 'src/shared/types/user.role';
 
 export class CreateUserDto {
-  @ApiProperty({ description: 'Имя пользователя', required: false })
+  @ApiProperty({
+    description: 'Роль пользователя',
+    enum: UserRole,
+    default: UserRole.OWNER,
+  })
   @IsOptional()
-  @IsString()
-  name?: string;
+  @IsEnum(UserRole)
+  role?: UserRole;
 
-  @ApiProperty({ description: 'Номер телефона', required: false })
-  @IsOptional()
+  @ApiProperty({ description: 'Имя пользователя' })
   @IsString()
-  phone?: string;
+  name: string;
+
+  @ApiProperty({ description: 'Номер телефона' })
+  @IsString()
+  phone: string;
 
   @ApiProperty({ description: 'Email пользователя', required: false })
   @IsOptional()
   @IsString()
   email?: string;
+
+  @ApiProperty({ description: 'Telegram Chat ID', required: false })
+  @IsOptional()
+  @IsString()
+  telegramChatId?: string;
 
   @ApiProperty({ description: 'Провайдер авторизации', enum: AuthProvider })
   @IsEnum(AuthProvider)

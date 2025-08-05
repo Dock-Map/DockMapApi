@@ -66,6 +66,13 @@ export class UserService {
     await this.userRepository.update(userId, { refreshTokenHash: undefined });
   }
 
+  async updateLastLogin(userId: string, ipAddress: string): Promise<void> {
+    await this.userRepository.update(userId, {
+      lastLoginIp: ipAddress,
+      lastLoginAt: new Date(),
+    });
+  }
+
   async update(id: string, updateUserDto: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {

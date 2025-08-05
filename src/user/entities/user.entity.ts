@@ -18,21 +18,24 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
-  phone: string;
-
-  @Column({ nullable: true })
-  name: string;
-
-  @Column({ nullable: true })
-  email: string;
-
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.SHIPOWNER,
+    default: UserRole.OWNER,
   })
   role: UserRole;
+
+  @Column()
+  name: string;
+
+  @Column({ unique: true })
+  phone: string;
+
+  @Column({ unique: true, nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  telegramChatId: string;
 
   @Column({
     type: 'enum',
@@ -54,6 +57,12 @@ export class User {
 
   @Column({ nullable: true })
   refreshTokenHash?: string;
+
+  @Column({ nullable: true })
+  lastLoginIp: string;
+
+  @Column({ nullable: true })
+  lastLoginAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

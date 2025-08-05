@@ -1,6 +1,7 @@
 export enum UserRole {
-  CLUB_OWNER = 'club_owner',
-  ADMIN = 'admin',
-  SHIPOWNER = 'shipowner',
-  MANAGER = 'manager',
+  OWNER = 'owner', // Судовладелец
+  CLUB_ADMIN = 'club_admin', // Администратор яхт-клуба
+  MANAGER = 'manager', // Менеджер клуба
+  WORKER = 'worker', // Швартовщик
+  SUPER_ADMIN = 'super_admin', // DockMap модератор платформы
 }
