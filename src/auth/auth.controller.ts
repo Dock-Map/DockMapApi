@@ -2,12 +2,11 @@ import {
   Controller,
   Post,
   Body,
+  Get,
+  UseGuards,
+  Req,
   HttpCode,
   HttpStatus,
-  UseGuards,
-  Get,
-  Req,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +21,7 @@ import { VerifySmsDto } from './dto/verify-sms.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { TelegramStrategy } from './strategies/telegram.strategy';
+import { GetUser } from '../shared/decorators/get-user.decorator';
 
 interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
@@ -64,23 +64,14 @@ export class AuthController {
   @UseGuards(TelegramStrategy)
   @Get('telegram/callback')
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
-  telegramCallback(@Query() query: { tgAuthResult: string }) {
-    if (!query.tgAuthResult) {
-      throw new Error('Missing tgAuthResult parameter');
-    }
-
-    const tgAuthResult = query.tgAuthResult;
-    const base64Data = tgAuthResult.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonStr = Buffer.from(base64Data, 'base64').toString('utf-8');
-
-    const userData = JSON.parse(jsonStr) as {
-      id: string;
-      first_name: string;
-      last_name: string;
-      username: string;
-    };
-
-    return userData;
+  @ApiResponse({
+    status: 200,
+    description: 'Успешная авторизация',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Неверная подпись Telegram' })
+  telegramCallback(@GetUser() user: AuthResponseDto) {
+    return user;
   }
 
   // VK OAuth
