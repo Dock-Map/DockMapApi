@@ -25,6 +25,7 @@ import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
+import * as VKID from '@vkid/sdk';
 
 interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
@@ -117,8 +118,11 @@ export class AuthController {
 
   @Get('vk/callback')
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
-  vkCallback(@Query() query: { code: string }) {
+  async vkCallback(@Query() query: { code: string; device_id: string }) {
     console.log(query);
+    const user = await VKID.Auth.exchangeCode(query.code, query.device_id);
+
+    console.log(user);
 
     return { message: 'Callback от VK Login Widget' };
   }
