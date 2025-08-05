@@ -17,15 +17,6 @@ interface TelegramAuthData {
   hash: string;
 }
 
-interface TelegramUserData {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-}
-
 interface TelegramRequest extends Request {
   query: TelegramAuthData & Record<string, any>;
 }
