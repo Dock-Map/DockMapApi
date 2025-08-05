@@ -22,22 +22,14 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { SendSmsDto } from './dto/send-sms.dto';
 import { VerifySmsDto } from './dto/verify-sms.dto';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
+import { VkCallbackDto } from './dto/vk-callback.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
-import * as VKID from '@vkid/sdk';
 
 interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
 }
-
-VKID.Config.init({
-  app: 54007159,
-  redirectUrl: 'https://dockmapapi-production.up.railway.app/auth/vk/callback',
-  responseMode: VKID.ConfigResponseMode.Callback,
-  source: VKID.ConfigSource.LOWCODE,
-  scope: '',
-});
 
 @ApiTags('auth')
 @Controller('auth')
@@ -126,13 +118,23 @@ export class AuthController {
 
   @Get('vk/callback')
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
-  async vkCallback(@Query() query: { code: string; device_id: string }) {
-    console.log(query);
-    const user = await VKID.Auth.exchangeCode(query.code, query.device_id);
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
+  async vkCallback(
+    @Query() query: VkCallbackDto,
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
 
-    console.log(user);
+    const user = await this.authService.authenticateWithVkCallback(
+      query.code,
+      ipAddress,
+    );
 
-    return { message: 'Callback от VK Login Widget' };
+    console.log(user, 'user');
+
+    return user;
   }
 
   // Обновление токенов

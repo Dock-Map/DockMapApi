@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
 import { TokenService } from './services/token.service';
 import { SmsService } from './services/sms.service';
+import { VkService } from './services/vk.service';
 import { expiresAccessIn } from 'src/shared/constants';
 import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { UserModule } from '../user/user.module';
@@ -36,6 +37,7 @@ import { VerificationCode } from './entities/verification-code.entity';
     AuthService,
     TokenService,
     SmsService,
+    VkService,
     ConfigService,
     JwtStrategy,
     JwtRefreshTokenStrategy,
