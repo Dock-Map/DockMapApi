@@ -77,14 +77,7 @@ export class AuthController {
 
     console.log(userData, 'userData');
 
-    return `
-        <html>
-            <body>
-                <h1>Sucsess auth</h1>
-                <p>userData: ${JSON.stringify(userData.username)}</p>
-            </body>
-        </html>
-    `;
+    return `userData: ${JSON.stringify(userData.username)}`;
   }
 
   // VK OAuth
