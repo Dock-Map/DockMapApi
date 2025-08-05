@@ -122,7 +122,13 @@ export class SmsService {
 
       // Отправляем SMS через SMS.RU API используя callback
       const result = await this.promisifySmsRuCall(
-        this.smsClient.sms_send.bind(this.smsClient),
+        this.smsClient.sms_send.bind(this.smsClient) as (
+          params: any,
+          callback: (
+            error: SmsRuResponse | null,
+            result: SmsRuApiResult | null,
+          ) => void,
+        ) => void,
         {
           to: formattedPhone,
           text: message,
@@ -338,7 +344,8 @@ export class SmsService {
             console.log('SMS.RU callback received', { error, result });
 
             // SMS.RU возвращает результат в поле error, а не result
-            const response: SmsRuResponse | SmsRuApiResult | null = error || result;
+            const response: SmsRuResponse | SmsRuApiResult | null =
+              error || result;
 
             if (response && 'code' in response && response.code === '100') {
               console.log('SMS.RU success:', response);
