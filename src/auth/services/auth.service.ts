@@ -6,8 +6,8 @@ import { AuthProvider, User } from '../../user/entities/user.entity';
 import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
+import { ConfigService } from '@nestjs/config';
 
-// Интерфейс для данных Telegram (соответствует TelegramAuthDto)
 interface TelegramAuthData {
   id: number;
   username?: string;
@@ -15,7 +15,7 @@ interface TelegramAuthData {
   last_name?: string;
   photo_url?: string;
   auth_date?: string;
-  hash?: string;
+  hash: string;
 }
 
 // Интерфейс для данных VK (соответствует VkAuthDto)
@@ -33,6 +33,7 @@ export class AuthService {
     private tokenService: TokenService,
     private userService: UserService,
     private smsService: SmsService,
+    private configService: ConfigService,
   ) {}
 
   // Универсальная авторизация через SMS
@@ -71,6 +72,13 @@ export class AuthService {
     return this.generateAuthTokens(user);
   }
 
+  getTelegramOauthLink() {
+    const botId = this.configService.get<string>('TELEGRAM_BOT_ID');
+    const origin = this.configService.get<string>('TELEGRAM_BOT_ORIGIN');
+    const return_to = this.configService.get<string>('TELEGRAM_REDIRECT_URL');
+    return `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&return_to=${return_to}`;
+  }
+
   async authenticateWithTelegram(
     telegramData: TelegramAuthData,
     ipAddress?: string,
@@ -82,7 +90,7 @@ export class AuthService {
     if (!user) {
       user = await this.userService.create({
         name: `${first_name} ${last_name || ''}`.trim(),
-        phone: `telegram_${id}`, // Временный номер для Telegram
+        phone: `telegram_${id}`,
         authProvider: AuthProvider.TELEGRAM,
         providerId: id.toString(),
         telegramUsername: username,
@@ -90,7 +98,6 @@ export class AuthService {
       });
     }
 
-    // Обновляем информацию о входе
     if (ipAddress) {
       await this.userService.updateLastLogin(user.id, ipAddress);
     }

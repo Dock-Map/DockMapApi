@@ -7,7 +7,6 @@ import { AuthResponseDto } from '../dto/auth-response.dto';
 import { createHash } from 'crypto';
 import { Request } from 'express';
 
-// Интерфейс для данных от Telegram Login Widget
 interface TelegramAuthData {
   id: number;
   first_name: string;
@@ -18,7 +17,6 @@ interface TelegramAuthData {
   hash: string;
 }
 
-// Интерфейс для данных пользователя без hash
 interface TelegramUserData {
   id: number;
   first_name: string;
@@ -28,7 +26,6 @@ interface TelegramUserData {
   auth_date: number;
 }
 
-// Интерфейс для запроса с Telegram данными
 interface TelegramRequest extends Request {
   query: TelegramAuthData & Record<string, any>;
 }
@@ -47,22 +44,20 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
     done: (error: any, user?: AuthResponseDto) => void,
   ): Promise<void> {
     try {
-      // Получаем данные от Telegram Login Widget
       const telegramData = req.query;
 
-      // Проверяем подпись от Telegram
       const isValidSignature = this.verifyTelegramSignature(telegramData);
 
       if (!isValidSignature) {
         return done(new Error('Invalid Telegram signature'), undefined);
       }
 
-      // Авторизуем через наш AuthService
       const authResult = await this.authService.authenticateWithTelegram({
         id: telegramData.id,
         username: telegramData.username || '',
         first_name: telegramData.first_name,
         last_name: telegramData.last_name || '',
+        hash: telegramData.hash,
       });
 
       done(null, authResult);
@@ -78,13 +73,11 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
       return false;
     }
 
-    // Создаем строку для проверки подписи
     const dataCheckString = Object.keys(userData)
       .sort()
       .map((key) => `${key}=${userData[key as keyof TelegramUserData]}`)
       .join('\n');
 
-    // Создаем секретный ключ
     const botToken = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
     if (!botToken) {
       return false;
@@ -92,7 +85,6 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
 
     const secretKey = createHash('sha256').update(botToken).digest();
 
-    // Вычисляем HMAC
     const hmac = createHash('sha256')
       .update(dataCheckString)
       .update(secretKey)

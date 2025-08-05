@@ -15,15 +15,13 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './services/auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { SendSmsDto } from './dto/send-sms.dto';
 import { VerifySmsDto } from './dto/verify-sms.dto';
-import { TelegramAuthDto } from './dto/telegram-auth.dto';
-import { VkAuthDto } from './dto/vk-auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
+import { TelegramStrategy } from './strategies/telegram.strategy';
 
 interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
@@ -57,6 +55,13 @@ export class AuthController {
     );
   }
 
+  @Get('telegram/oauth-link')
+  @ApiOperation({ summary: 'Получить ссылку для авторизации через Telegram' })
+  getTelegramOauthLink() {
+    return this.authService.getTelegramOauthLink();
+  }
+
+  @UseGuards(TelegramStrategy)
   @Get('telegram/callback')
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   telegramCallback(@Query() query: { tgAuthResult: string }) {
@@ -80,55 +85,18 @@ export class AuthController {
 
   // VK OAuth
   @Get('vk')
-  @UseGuards(AuthGuard('vkontakte'))
   @ApiOperation({ summary: 'Авторизация через VKontakte' })
   vkAuth() {
     // VK OAuth flow - автоматическое перенаправление
   }
 
   @Get('vk/callback')
-  @UseGuards(AuthGuard('vkontakte'))
   @ApiOperation({ summary: 'Callback от VKontakte OAuth' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   vkCallback(@Req() req: AuthenticatedRequest): AuthResponseDto {
     return req.user; // Возвращает результат от VkStrategy
   }
 
-  // Моковые эндпоинты для тестирования
-  @Post('telegram/mock')
-  @ApiOperation({ summary: 'Моковая авторизация через Telegram' })
-  @ApiResponse({ status: 200, type: AuthResponseDto })
-  async telegramMockAuth(@Body() body: TelegramAuthDto, @Req() req: Request) {
-    const ipAddress =
-      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
-    // Преобразуем данные для соответствия интерфейсу AuthService
-    const telegramData = {
-      id: body.id,
-      username: body.username || '',
-      first_name: body.first_name,
-      last_name: body.last_name || '',
-    };
-    return this.authService.authenticateWithTelegram(telegramData, ipAddress);
-  }
-
-  @Post('vk/mock')
-  @ApiOperation({ summary: 'Моковая авторизация через VK' })
-  @ApiResponse({ status: 200, type: AuthResponseDto })
-  async vkMockAuth(@Body() body: VkAuthDto, @Req() req: Request) {
-    const ipAddress =
-      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
-    // Преобразуем данные для соответствия интерфейсу AuthService
-    const vkData = {
-      id: body.id,
-      first_name: body.first_name,
-      last_name: body.last_name,
-      screen_name: body.screen_name,
-      email: body.email,
-    };
-    return this.authService.authenticateWithVk(vkData, ipAddress);
-  }
-
-  // Обновление токенов
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Обновить access token' })
