@@ -120,7 +120,7 @@ export class SmsService {
 
       await this.verificationCodeRepository.save(verificationCode);
 
-      if (!isTestMode) {
+      if (isTestMode) {
         return {
           success: true,
           message: `Код отправлен (тестовый режим): ${code}`,
