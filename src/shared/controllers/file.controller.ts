@@ -83,10 +83,12 @@ export class FileController {
         success: true,
         data: result,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -139,10 +141,12 @@ export class FileController {
         success: true,
         data: result,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -159,10 +163,12 @@ export class FileController {
         success: true,
         data: list,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -184,10 +190,12 @@ export class FileController {
           buffer: buffer.toString('base64'),
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -210,10 +218,12 @@ export class FileController {
         success: true,
         data: fileInfo,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -224,7 +234,7 @@ export class FileController {
   @ApiOperation({ summary: 'Получить публичный URL файла' })
   @ApiResponse({ status: 200, description: 'URL получен' })
   @ApiResponse({ status: 404, description: 'Файл не найден' })
-  async getPublicUrl(@Param('key') key: string): Promise<{ url: string }> {
+  getPublicUrl(@Param('key') key: string): { url: string } {
     const url = this.s3Service.getPublicUrl(key);
     return { url };
   }
@@ -245,11 +255,11 @@ export class FileController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Удалить все файлы из бакета' })
   @ApiResponse({ status: 200, description: 'Все файлы удалены' })
-  async cleanUp(): Promise<{ success: boolean; data?: any }> {
+  async cleanUp(): Promise<{ success: boolean; data?: unknown }> {
     try {
       const result = await this.s3Service.cleanUp();
       return { success: true, data: result };
-    } catch (error) {
+    } catch {
       return { success: false };
     }
   }

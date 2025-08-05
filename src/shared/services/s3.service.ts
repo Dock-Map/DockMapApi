@@ -113,7 +113,7 @@ export class S3Service {
   /**
    * Получает список файлов в папке
    */
-  async getFileList(folder?: string): Promise<any> {
+  async getFileList(folder?: string): Promise<unknown> {
     if (!this.s3) {
       throw new Error(
         'S3Service not configured. Please set Yandex Cloud S3 credentials.',
@@ -170,7 +170,7 @@ export class S3Service {
   /**
    * Удаляет все файлы из бакета
    */
-  async cleanUp(): Promise<any> {
+  async cleanUp(): Promise<unknown> {
     if (!this.s3) {
       throw new Error(
         'S3Service not configured. Please set Yandex Cloud S3 credentials.',
@@ -190,7 +190,9 @@ export class S3Service {
         return null;
       }
 
-      const file = list.Contents?.find((item: any) => item.Key === key);
+      const file = list.Contents?.find(
+        (item: { Key: string }) => item.Key === key,
+      );
 
       if (!file) {
         return null;
@@ -199,10 +201,12 @@ export class S3Service {
       return {
         key: file.Key || '',
         size: file.Size || 0,
-        contentType: (file as any).ContentType || 'application/octet-stream',
+        contentType:
+          (file as { ContentType?: string }).ContentType ||
+          'application/octet-stream',
         lastModified: file.LastModified || new Date(),
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
