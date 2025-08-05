@@ -1,158 +1,158 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+Проект DockMap — это цифровая платформа с амбициозным функционалом, охватывающим B2C (владельцы судов) и B2B (администраторы яхт-клубов) интерфейсы. Стартуем с бэкенда, ориентируясь на MVP, но с учётом масштабируемости.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Роль Кто это Основные права и доступ
+Owner Судовладелец ЛК, бронирование, документы, оплата
+ClubAdmin Администратор яхт-клуба Управление клубом, карта, бронирования, сотрудники
+ClubManager Менеджер клуба Работа с клиентами, швартовками, частичный доступ
+DockWorker Швартовщик Просмотр карт, статусов, без доступа к CRM
+SuperAdmin DockMap модератор платформы Верификация клубов, модерирование, аналитика всех клубов
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+3. Основные модули (по функциональности)
+1. Аутентификация и авторизация
+   JWT + Refresh Tokens
+   Role-based access (RBAC)
 
-## Description
+Поддержка входа через Telegram (OAuth-like flow)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Логгирование входов по IP / устройству
 
-## Project setup
+2. Пользователи
+   CRUD профилей
 
-```bash
-$ pnpm install
-```
+Хранение документов (S3)
 
-## Compile and run the project
+Список судов
 
-```bash
-# development
-$ pnpm run start
+Список бронирований
 
-# watch mode
-$ pnpm run start:dev
+3. Яхт-клубы
+   CRUD клубов (модерация)
 
-# production mode
-$ pnpm run start:prod
-```
+Подключение сотрудников
 
-## Run tests
+Календарь
 
-```bash
-# unit tests
-$ pnpm run test
+Причалы (причальные места)
 
-# e2e tests
-$ pnpm run test:e2e
+Интерактивная карта (связка с координатами)
 
-# test coverage
-$ pnpm run test:cov
-```
+Цены и тарифы
 
-## Deployment
+Услуги
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+4. Бронирования
+   CRUD
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Статусы: pending, confirmed, cancelled, expired
 
-```bash
-$ pnpm install -g mau
-$ mau deploy
-```
+Управление бронями
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Автоотмена при неактивации
 
-## Resources
+Генерация оферты
 
-Check out a few resources that may come in handy when working with NestJS:
+5. Оплаты
+   Интеграция с платежной системой (CloudPayments / Stripe / YooKassa / Тинькофф)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Webhooks
 
-## Support
+Генерация чеков (фискализация)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+6. Уведомления
+   Email (SMTP или сторонний сервис типа SendGrid)
 
-## Stay in touch
+Telegram (бот через node-telegram-bot-api)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+SMS (Twilio)
 
-## License
+7. Аналитика и отчёты
+   Доходы
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Загруженность
 
-# DockMapApi
+По клиентам
 
-## Установка зависимостей
+Выгрузка в Excel / PDF
 
-```bash
-pnpm install
-```
+8. Документы и безопасность
+   Шифрование (AES-256)
 
-## Настройка Twilio для SMS
+Облачное хранилище
 
-1. Создайте аккаунт на [Twilio](https://www.twilio.com/)
-2. Получите Account SID и Auth Token
-3. Купите номер телефона в Twilio
-4. Создайте файл `.env` со следующими переменными:
+Подписи оферты (либо EDS, либо checkbox-согласие)
 
-```env
-TWILIO_ACCOUNT_SID=your_account_sid_here
-TWILIO_AUTH_TOKEN=your_auth_token_here
-TWILIO_PHONE_NUMBER=your_twilio_phone_number_here
-```
-
-## Запуск приложения
-
-```bash
-# Разработка
-pnpm run start:dev
-
-# Продакшн
-pnpm run start:prod
-```
-
-## API Endpoints
-
-### SMS верификация
-
-- `POST /user/send-sms` - Отправить SMS с кодом верификации
-- `POST /user/verify-sms` - Проверить SMS код
-
-### Примеры запросов
-
-#### Отправка SMS
-
-```json
-POST /user/send-sms
-{
-  "phoneNumber": "+79001234567"
+User {
+id String @id @default(uuid())
+role Role // Enum: OWNER | CLUB_ADMIN | MANAGER | WORKER | SUPER_ADMIN
+name String
+phone String @unique
+email String? @unique
+telegramChatId String?
+boats Boat[]
+bookings Booking[]
+documents Document[]
+createdAt DateTime @default(now())
 }
-```
 
-#### Проверка кода
-
-```json
-POST /user/verify-sms
-{
-  "phoneNumber": "+79001234567",
-  "code": "123456"
+Boat {
+id String @id @default(uuid())
+userId String
+name String
+type String
+length Float
+width Float
+draft Float
+registryNumber String
 }
-```
+
+Club {
+id String @id @default(uuid())
+name String
+location String
+city String
+coords Json
+description String
+admins ClubUser[]
+docks Dock[]
+services Service[]
+}
+
+Dock {
+id String @id @default(uuid())
+clubId String
+name String // A1, A2 и т.п.
+width Float
+length Float
+depth Float
+category String
+type String // guest / rent / reserved
+status String // free, booked, occupied, repair
+bookings Booking[]
+}
+
+Booking {
+id String @id @default(uuid())
+userId String
+boatId String
+clubId String
+dockId String
+fromDate DateTime
+toDate DateTime
+status String // pending, confirmed, cancelled
+price Float
+services BookingService[]
+}
+
+BookingService {
+id String @id @default(uuid())
+bookingId String
+serviceId String
+price Float
+}
+
+Service {
+id String @id @default(uuid())
+name String
+price Float
+availableDocks String[] // или отдельная связующая таблица
+}
