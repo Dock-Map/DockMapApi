@@ -58,12 +58,8 @@ export class AuthController {
   @Get('telegram/callback')
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  telegramCallback(
-    @Req() req: AuthenticatedRequest,
-    @Query() query: any,
-  ): AuthResponseDto {
+  telegramCallback(@Query() query: any): AuthResponseDto {
     console.log(query, 'query');
-    console.log(req, 'req');
 
     return {
       user: {
