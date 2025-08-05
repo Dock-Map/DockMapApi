@@ -136,6 +136,7 @@ export class AuthService {
 
   async refreshTokens(refreshToken: string): Promise<AuthResponseDto> {
     try {
+      // Проверяем валидность refresh token
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
       const user = await this.userService.findById(payload.userId);
 
@@ -143,14 +144,50 @@ export class AuthService {
         throw new UnauthorizedException('Пользователь не найден');
       }
 
+      // Проверяем, что refresh token совпадает с сохраненным в базе
+      if (!user.refreshTokenHash) {
+        throw new UnauthorizedException('Refresh token не найден в базе');
+      }
+
+      // Проверяем хеш refresh token
+      const isTokenValid = await compare(refreshToken, user.refreshTokenHash);
+      if (!isTokenValid) {
+        throw new UnauthorizedException('Refresh token недействителен');
+      }
+
+      // Генерируем новые токены (ротация)
       return this.generateAuthTokens(user);
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Недействительный refresh token');
     }
   }
 
   async logout(userId: string): Promise<void> {
     await this.userService.invalidateRefreshToken(userId);
+  }
+
+  // Принудительный отзыв всех токенов пользователя (для безопасности)
+  async revokeAllTokens(userId: string): Promise<void> {
+    await this.userService.invalidateRefreshToken(userId);
+  }
+
+  // Проверка валидности refresh token без обновления
+  async validateRefreshToken(refreshToken: string): Promise<boolean> {
+    try {
+      const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+      const user = await this.userService.findById(payload.userId);
+
+      if (!user || !user.refreshTokenHash) {
+        return false;
+      }
+
+      return await compare(refreshToken, user.refreshTokenHash);
+    } catch {
+      return false;
+    }
   }
 
   async sendSms(phone: string): Promise<{ message: string }> {

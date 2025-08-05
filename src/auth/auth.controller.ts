@@ -7,6 +7,8 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -107,6 +109,33 @@ export class AuthController {
   async logout(@Req() req: AuthenticatedRequest) {
     await this.authService.logout(req.user.user.id);
     return { message: 'Успешный выход' };
+  }
+
+  @Post('revoke-all-tokens')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Отозвать все токены пользователя (для безопасности)',
+  })
+  @ApiResponse({ status: 200, description: 'Все токены отозваны' })
+  async revokeAllTokens(@Req() req: AuthenticatedRequest) {
+    await this.authService.revokeAllTokens(req.user.user.id);
+    return { message: 'Все токены отозваны' };
+  }
+
+  @Post('validate-refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Проверить валидность refresh token' })
+  @ApiResponse({ status: 200, description: 'Token валиден' })
+  @ApiResponse({ status: 401, description: 'Token недействителен' })
+  async validateRefreshToken(@Body() body: { refreshToken: string }) {
+    const isValid = await this.authService.validateRefreshToken(
+      body.refreshToken,
+    );
+    if (!isValid) {
+      throw new UnauthorizedException('Refresh token недействителен');
+    }
+    return { valid: true };
   }
 
   @ApiBearerAuth('JWT')

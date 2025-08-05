@@ -90,3 +90,165 @@ SMS (Twilio или аналогичный провайдер)
 Статистика по пользователям
 
 Выгрузка данных в Excel / PDF (через админку)
+
+# DockMapApi
+
+API для системы управления яхт-клубами и судовладельцами.
+
+## Аутентификация и безопасность токенов
+
+### JWT Token Security
+
+Система использует двойную систему токенов для безопасности:
+
+#### Access Token
+
+- **Время жизни**: 15 минут
+- **Назначение**: Доступ к защищенным ресурсам
+- **Хранение**: В памяти клиента
+
+#### Refresh Token
+
+- **Время жизни**: 7 дней
+- **Назначение**: Обновление access token
+- **Хранение**: В базе данных (хешированный)
+
+### Безопасность Refresh Tokens
+
+#### Ротация токенов
+
+- При каждом обновлении создается **новый** refresh token
+- Старый refresh token становится недействительным
+- Предотвращает повторное использование скомпрометированных токенов
+
+#### Проверка валидности
+
+- Refresh token проверяется на соответствие сохраненному в базе
+- Используется bcrypt для сравнения хешей
+- При несовпадении токен отзывается
+
+#### Отзыв токенов
+
+- **Logout**: Отзывает текущий refresh token
+- **Revoke All**: Отзывает все токены пользователя (для безопасности)
+
+### API Endpoints
+
+```bash
+# Обновление токенов
+POST /auth/refresh
+Body: { "refreshToken": "..." }
+
+# Выход из системы
+POST /auth/logout
+Authorization: Bearer <access_token>
+
+# Отзыв всех токенов (безопасность)
+POST /auth/revoke-all-tokens
+Authorization: Bearer <access_token>
+
+# Проверка валидности refresh token
+POST /auth/validate-refresh
+Body: { "refreshToken": "..." }
+```
+
+### Рекомендации по безопасности
+
+1. **Храните refresh token безопасно** - в httpOnly cookies или secure storage
+2. **Используйте HTTPS** - для всех запросов с токенами
+3. **Регулярно обновляйте токены** - не держите старые access tokens
+4. **Отзывайте токены при подозрении** - используйте `/auth/revoke-all-tokens`
+5. **Мониторьте активность** - логируйте все операции с токенами
+
+## Установка и запуск
+
+### Требования
+
+- Node.js 18+
+- PostgreSQL
+- Redis (опционально)
+
+### Переменные окружения
+
+```env
+# База данных
+DATABASE_URL=postgresql://user:password@localhost:5432/dockmap
+
+# JWT токены
+JWT_SECRET=your_jwt_secret_key
+JWT_SECRET_REFRESH=your_jwt_refresh_secret_key
+
+# Twilio SMS
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+# Yandex Cloud Object Storage (опционально)
+YANDEX_S3_ACCESS_KEY_ID=your_access_key_id
+YANDEX_S3_SECRET_ACCESS_KEY=your_secret_access_key
+YANDEX_S3_BUCKET=your_bucket_name
+```
+
+### Установка зависимостей
+
+```bash
+npm install
+```
+
+### Запуск в режиме разработки
+
+```bash
+npm run start:dev
+```
+
+### Запуск в продакшене
+
+```bash
+npm run build
+npm run start:prod
+```
+
+## API Endpoints
+
+### Аутентификация
+
+- `POST /auth/sms/send` - Отправить SMS код
+- `POST /auth/sms/verify` - Проверить SMS код и войти
+- `POST /auth/refresh` - Обновить токены
+- `POST /auth/logout` - Выйти из системы
+- `POST /auth/revoke-all-tokens` - Отозвать все токены
+
+### Пользователи
+
+- `GET /user/cities` - Получить список городов
+- `POST /user/complete-registration` - Завершить регистрацию
+- `GET /user/profile` - Получить профиль пользователя
+
+### Файлы (если настроен S3)
+
+- `POST /files/upload` - Загрузить файл
+- `POST /files/upload-image` - Загрузить изображение
+- `GET /files/list` - Список файлов
+- `GET /files/download/{key}` - Скачать файл
+- `DELETE /files/{key}` - Удалить файл
+
+## Структура проекта
+
+```
+src/
+├── auth/           # Аутентификация и авторизация
+├── user/           # Управление пользователями
+├── shared/         # Общие сервисы (S3, SMS)
+├── healthCheck/    # Проверка здоровья приложения
+└── app/           # Основной модуль приложения
+```
+
+## Технологии
+
+- **NestJS** - фреймворк для Node.js
+- **TypeORM** - ORM для работы с базой данных
+- **JWT** - JSON Web Tokens для аутентификации
+- **Passport** - стратегии аутентификации
+- **Twilio** - SMS верификация
+- **Yandex Cloud Object Storage** - хранение файлов
+- **Swagger** - документация API
