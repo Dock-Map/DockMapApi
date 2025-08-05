@@ -42,6 +42,6 @@ import { VerificationCode } from './entities/verification-code.entity';
     VkStrategy,
     TelegramAuthGuard,
   ],
-  exports: [AuthService, TokenService, SmsService],
+  exports: [AuthService, TokenService, SmsService, ConfigService],
 })
 export class AuthModule {}

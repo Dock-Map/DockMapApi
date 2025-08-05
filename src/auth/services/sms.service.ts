@@ -39,6 +39,11 @@ export class SmsService {
     @InjectRepository(VerificationCode)
     private verificationCodeRepository: Repository<VerificationCode>,
   ) {
+    // Проверяем что configService является экземпляром ConfigService
+    if (!configService || typeof configService.get !== 'function') {
+      throw new Error('ConfigService not properly injected');
+    }
+
     this.apiId = this.configService.get<string>('SMS_RU_API_ID') || '';
     this.from = this.configService.get<string>('SMS_RU_FROM') || '';
 
@@ -54,6 +59,14 @@ export class SmsService {
     phoneNumber: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
+      // Дополнительная проверка ConfigService
+      if (!this.configService || typeof this.configService.get !== 'function') {
+        return {
+          success: false,
+          message: 'Configuration service not available',
+        };
+      }
+
       // Проверяем и форматируем номер телефона
       const formattedPhone = this.formatPhoneNumber(phoneNumber);
 
