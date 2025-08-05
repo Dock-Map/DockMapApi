@@ -36,12 +36,13 @@ import { VerificationCode } from './entities/verification-code.entity';
     AuthService,
     TokenService,
     SmsService,
+    ConfigService,
     JwtStrategy,
     JwtRefreshTokenStrategy,
     TelegramStrategy,
     VkStrategy,
     TelegramAuthGuard,
   ],
-  exports: [AuthService, TokenService, SmsService, ConfigService],
+  exports: [AuthService, TokenService, SmsService],
 })
 export class AuthModule {}
