@@ -13,10 +13,20 @@ interface SmsRuApiResult {
   description?: string;
 }
 
+interface SmsRuResponse {
+  code: string;
+  description: string;
+  ids?: string;
+  balance?: string;
+}
+
 interface SmsRuClient {
   sms_send: (
     params: any,
-    callback: (error: any, result: SmsRuApiResult) => void,
+    callback: (
+      error: SmsRuResponse | null,
+      result: SmsRuApiResult | null,
+    ) => void,
   ) => void;
   my_balance: (
     params: any,
@@ -308,10 +318,13 @@ export class SmsService {
   private promisifySmsRuCall(
     method: (
       params: any,
-      callback: (error: any, result: SmsRuApiResult) => void,
+      callback: (
+        error: SmsRuResponse | null,
+        result: SmsRuApiResult | null,
+      ) => void,
     ) => void,
     params: any,
-  ): Promise<SmsRuApiResult> {
+  ): Promise<SmsRuResponse> {
     console.log('promisifySmsRuCall started', {
       method: typeof method,
       params,
@@ -319,26 +332,29 @@ export class SmsService {
 
     return new Promise((resolve, reject) => {
       try {
-        method(params, (error: any, result: SmsRuApiResult) => {
-          console.log('SMS.RU callback received', { error, result });
+        method(
+          params,
+          (error: SmsRuResponse | null, result: SmsRuApiResult | null) => {
+            console.log('SMS.RU callback received', { error, result });
 
-          // SMS.RU возвращает результат в поле error, а не result
-          const response = error || result;
+            // SMS.RU возвращает результат в поле error, а не result
+            const response = error || result;
 
-          if (response && response.code === '100') {
-            console.log('SMS.RU success:', response);
-            resolve(response);
-          } else if (error && error.code && error.code !== '100') {
-            console.log('SMS.RU error:', error);
-            reject(new Error(error.description || 'SMS.RU API error'));
-          } else {
-            console.log('SMS.RU unknown response:', response);
-            reject(new Error('Unknown SMS.RU response'));
-          }
-        });
+            if (response && 'code' in response && response.code === '100') {
+              console.log('SMS.RU success:', response);
+              resolve(response as SmsRuResponse);
+            } else if (error && 'code' in error && error.code !== '100') {
+              console.log('SMS.RU error:', error);
+              reject(new Error(error.description || 'SMS.RU API error'));
+            } else {
+              console.log('SMS.RU unknown response:', response);
+              reject(new Error('Unknown SMS.RU response'));
+            }
+          },
+        );
       } catch (err) {
         console.log('promisifySmsRuCall exception:', err);
-        reject(err);
+        reject(new Error(err instanceof Error ? err.message : 'Unknown error'));
       }
     });
   }
@@ -351,9 +367,9 @@ export class SmsService {
         {},
       );
 
-      if (result.status === 'OK' && result.balance !== undefined) {
+      if (result.code === '100' && result.balance) {
         return {
-          balance: result.balance,
+          balance: parseFloat(result.balance),
           currency: 'RUB',
         };
       } else {
@@ -373,11 +389,10 @@ export class SmsService {
         id: smsId,
       });
 
-      if (result.status === 'OK' && result.sms && result.sms[smsId]) {
-        const smsInfo = result.sms[smsId];
+      if (result.code === '100') {
         return {
-          status: smsInfo.status,
-          message: smsInfo.status_text,
+          status: 'OK',
+          message: result.description,
         };
       } else {
         throw new Error('Failed to get SMS status');
