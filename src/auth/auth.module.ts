@@ -18,6 +18,7 @@ import { VerificationCode } from './entities/verification-code.entity';
 
 @Module({
   imports: [
+    ConfigModule,
     PassportModule,
     UserModule,
     TypeOrmModule.forFeature([VerificationCode]),
