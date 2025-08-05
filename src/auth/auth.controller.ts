@@ -8,6 +8,7 @@ import {
   Get,
   Req,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -58,8 +59,25 @@ export class AuthController {
   @UseGuards(AuthGuard('telegram'))
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  telegramCallback(@Req() req: AuthenticatedRequest): AuthResponseDto {
-    return req.user; // Возвращает результат от TelegramStrategy
+  telegramCallback(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: any,
+  ): AuthResponseDto {
+    console.log(query, 'query');
+    console.log(req, 'req');
+
+    return {
+      user: {
+        id: '123',
+        name: '123',
+        phone: '123',
+        email: '123',
+        role: '123',
+        authProvider: 'telegram',
+      },
+      accessToken: '123',
+      refreshToken: '123',
+    }; // Возвращает результат от TelegramStrategy
   }
 
   // VK OAuth
