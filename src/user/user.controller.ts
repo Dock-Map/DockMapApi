@@ -10,6 +10,16 @@ import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 
+interface AuthenticatedRequest extends Request {
+  user: {
+    userId: string;
+    email: string;
+    name: string;
+    phone: string;
+    role: string;
+  };
+}
+
 @ApiTags('user')
 @Controller('user')
 export class UserController {
@@ -29,9 +39,9 @@ export class UserController {
   @ApiResponse({ status: 400, description: 'Неверные данные' })
   async completeRegistration(
     @Body() completeRegistrationDto: CompleteRegistrationDto,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
   ) {
-    const userData = req.user as any;
+    const userData = req.user;
     if (!userData?.userId) {
       throw new Error('Пользователь не найден');
     }

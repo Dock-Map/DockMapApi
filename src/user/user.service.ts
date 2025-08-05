@@ -11,12 +11,6 @@ interface City {
   region?: string;
 }
 
-interface UserCity {
-  id: number;
-  name: string;
-  region?: string;
-}
-
 @Injectable()
 export class UserService {
   constructor(

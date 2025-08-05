@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsNumber } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 import { UserRole } from 'src/shared/types/user.role';
 
 export class CompleteRegistrationDto {
