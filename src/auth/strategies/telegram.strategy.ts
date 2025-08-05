@@ -44,7 +44,25 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
     done: (error: any, user?: AuthResponseDto) => void,
   ): Promise<void> {
     try {
-      const telegramData = req.query;
+      const tgAuthResult = req.query.tgAuthResult as string;
+
+      if (!tgAuthResult) {
+        return done(new Error('Missing tgAuthResult parameter'), undefined);
+      }
+
+      const base64Data = tgAuthResult.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonStr = Buffer.from(base64Data, 'base64').toString('utf-8');
+
+      const userData = JSON.parse(jsonStr) as {
+        id: number;
+        first_name: string;
+        last_name: string;
+        username: string;
+        auth_date: number;
+        hash: string;
+      };
+
+      const telegramData = userData;
 
       const isValidSignature = this.verifyTelegramSignature(telegramData);
 
