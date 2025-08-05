@@ -64,6 +64,7 @@ export class TelegramStrategy extends PassportStrategy(Strategy, 'telegram') {
 
       const telegramData = userData;
 
+      console.log(telegramData, 'telegramData');
       const isValidSignature = this.verifyTelegramSignature(telegramData);
       console.log(isValidSignature, 'isValidSignature');
 
