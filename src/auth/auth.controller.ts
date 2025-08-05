@@ -57,8 +57,7 @@ export class AuthController {
 
   @Get('telegram/callback')
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
-  @ApiResponse({ status: 200, type: AuthResponseDto })
-  telegramCallback(@Query() query: { tgAuthResult: string }): AuthResponseDto {
+  telegramCallback(@Query() query: { tgAuthResult: string }) {
     if (!query.tgAuthResult) {
       throw new Error('Missing tgAuthResult parameter');
     }
@@ -76,18 +75,14 @@ export class AuthController {
 
     console.log(userData, 'userData');
 
-    return {
-      user: {
-        id: '123',
-        name: '123',
-        phone: '123',
-        email: '123',
-        role: '123',
-        authProvider: 'telegram',
-      },
-      accessToken: '123',
-      refreshToken: '123',
-    }; // Возвращает результат от TelegramStrategy
+    return `
+        <html>
+            <body>
+                <h1>Sucsess auth</h1>
+                <p>userData: ${JSON.stringify(userData.username)}</p>
+            </body>
+        </html>
+    `;
   }
 
   // VK OAuth
