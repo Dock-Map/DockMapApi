@@ -56,7 +56,6 @@ export class AuthController {
   }
 
   @Get('telegram/callback')
-  @UseGuards(AuthGuard('telegram'))
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   telegramCallback(
