@@ -42,11 +42,7 @@ export class VkService {
       console.log(response.data, 'VK token response');
 
       return response.data as VkTokenResponse;
-    } catch (error) {
-      console.error(
-        'Ошибка при обмене кода на токен:',
-        error.response?.data || error.message,
-      );
+    } catch {
       throw new UnauthorizedException('Не удалось получить токен от VK');
     }
   }
@@ -56,34 +52,21 @@ export class VkService {
    */
   async getUserData(accessToken: string): Promise<VkUserData> {
     try {
-      const response = await axios.get('https://api.vk.com/method/users.get', {
-        params: {
-          access_token: accessToken,
-          v: '5.131', // Версия VK API
-          fields: 'screen_name,email',
+      const response = await axios.get<VkUserData>(
+        'https://api.vk.com/method/users.get',
+        {
+          params: {
+            access_token: accessToken,
+            v: '5.131', // Версия VK API
+            fields: 'screen_name,email',
+          },
         },
-      });
-
-      if (!response.data.response || !response.data.response[0]) {
-        throw new UnauthorizedException(
-          'Не удалось получить данные пользователя',
-        );
-      }
-
-      const user = response.data.response[0];
-
-      return {
-        id: user.id.toString(),
-        first_name: user.first_name,
-        last_name: user.last_name,
-        screen_name: user.screen_name,
-        email: response.data.email, // Email может быть в отдельном поле
-      };
-    } catch (error) {
-      console.error(
-        'Ошибка при получении данных пользователя:',
-        error.response?.data || error.message,
       );
+
+      console.log(response.data, 'VK user data response');
+
+      return response.data;
+    } catch {
       throw new UnauthorizedException(
         'Не удалось получить данные пользователя из VK',
       );
