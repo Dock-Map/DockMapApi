@@ -20,20 +20,27 @@ interface SmsRuResponse {
   balance?: string;
 }
 
+interface SmsRuParams {
+  to?: string;
+  text?: string;
+  from?: string;
+  id?: string;
+}
+
 interface SmsRuClient {
   sms_send: (
-    params: any,
+    params: SmsRuParams,
     callback: (
       error: SmsRuResponse | null,
       result: SmsRuApiResult | null,
     ) => void,
   ) => void;
   my_balance: (
-    params: any,
+    params: Record<string, never>,
     callback: (error: any, result: SmsRuApiResult) => void,
   ) => void;
   sms_status: (
-    params: any,
+    params: { id: string },
     callback: (error: any, result: SmsRuApiResult) => void,
   ) => void;
 }
@@ -123,7 +130,7 @@ export class SmsService {
       // Отправляем SMS через SMS.RU API используя callback
       const result = await this.promisifySmsRuCall(
         this.smsClient.sms_send.bind(this.smsClient) as (
-          params: any,
+          params: SmsRuParams,
           callback: (
             error: SmsRuResponse | null,
             result: SmsRuApiResult | null,
@@ -133,7 +140,7 @@ export class SmsService {
           to: formattedPhone,
           text: message,
           from: this?.from || 'SMS.RU',
-        },
+        } as SmsRuParams,
       );
 
       if (result.code === '100') {
@@ -323,13 +330,13 @@ export class SmsService {
   // Вспомогательный метод для преобразования callback в Promise
   private promisifySmsRuCall(
     method: (
-      params: any,
+      params: SmsRuParams | Record<string, never> | { id: string },
       callback: (
         error: SmsRuResponse | null,
         result: SmsRuApiResult | null,
       ) => void,
     ) => void,
-    params: any,
+    params: SmsRuParams | Record<string, never> | { id: string },
   ): Promise<SmsRuResponse> {
     console.log('promisifySmsRuCall started', {
       method: typeof method,
