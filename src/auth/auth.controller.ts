@@ -31,6 +31,14 @@ interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
 }
 
+VKID.Config.init({
+  app: 54007159,
+  redirectUrl: 'https://dockmapapi-production.up.railway.app/auth/vk/callback',
+  responseMode: VKID.ConfigResponseMode.Callback,
+  source: VKID.ConfigSource.LOWCODE,
+  scope: '',
+});
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
