@@ -5,20 +5,32 @@ import { Repository } from 'typeorm';
 import { VerificationCode } from '../entities/verification-code.entity';
 import * as smsRu from 'sms_ru';
 
-interface SmsRuResult {
+interface SmsRuApiResult {
   status: string;
   balance?: number;
   sms?: Record<string, { status: string; status_text: string }>;
+  code?: string;
+  description?: string;
 }
 
-interface SmsRuSendResult {
-  status: string;
-  id?: string;
+interface SmsRuClient {
+  sms_send: (
+    params: any,
+    callback: (error: any, result: SmsRuApiResult) => void,
+  ) => void;
+  my_balance: (
+    params: any,
+    callback: (error: any, result: SmsRuApiResult) => void,
+  ) => void;
+  sms_status: (
+    params: any,
+    callback: (error: any, result: SmsRuApiResult) => void,
+  ) => void;
 }
 
 @Injectable()
 export class SmsService {
-  private smsClient: any;
+  private smsClient: SmsRuClient;
   private apiId: string;
   private from: string;
 
@@ -35,7 +47,7 @@ export class SmsService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    this.smsClient = new smsRu(this.apiId);
+    this.smsClient = new smsRu(this.apiId) as SmsRuClient;
   }
 
   async sendVerificationCode(
@@ -92,14 +104,11 @@ export class SmsService {
       await this.verificationCodeRepository.save(verificationCode);
 
       // Отправляем SMS через SMS.RU API используя callback
-      const result = await this.promisifySmsRuCall(
-        this.smsClient.sms_send.bind(this.smsClient),
-        {
-          to: formattedPhone,
-          text: message,
-          from: this.from,
-        },
-      );
+      const result = await this.promisifySmsRuCall(this.smsClient.sms_send, {
+        to: formattedPhone,
+        text: message,
+        from: this.from,
+      });
 
       if (result.status === 'OK') {
         return {
@@ -162,9 +171,11 @@ export class SmsService {
         };
       }
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Ошибка отправки кода';
       return {
         success: false,
-        message: error.description || 'Ошибка отправки кода',
+        message: errorMessage,
       };
     }
   }
@@ -203,7 +214,7 @@ export class SmsService {
       await this.verificationCodeRepository.save(verificationCode);
 
       return { success: true, message: 'Код подтвержден' };
-    } catch (error) {
+    } catch {
       return { success: false, message: 'Ошибка проверки кода' };
     }
   }
@@ -216,7 +227,7 @@ export class SmsService {
         .delete()
         .where('expiresAt < :now', { now: new Date() })
         .execute();
-    } catch (error) {
+    } catch {
       // Ошибка очистки истекших кодов
     }
   }
@@ -244,8 +255,7 @@ export class SmsService {
       }
 
       return null;
-    } catch (error) {
-      console.error('Error getting verification code:', error);
+    } catch {
       return null;
     }
   }
@@ -285,11 +295,19 @@ export class SmsService {
   }
 
   // Вспомогательный метод для преобразования callback в Promise
-  private promisifySmsRuCall(method: Function, params: any): Promise<any> {
+  private promisifySmsRuCall(
+    method: (
+      params: any,
+      callback: (error: any, result: SmsRuApiResult) => void,
+    ) => void,
+    params: any,
+  ): Promise<SmsRuApiResult> {
     return new Promise((resolve, reject) => {
-      method(params, (error: any, result: any) => {
+      method(params, (error: any, result: SmsRuApiResult) => {
         if (error) {
-          reject(error);
+          const errorMsg =
+            error instanceof Error ? error.message : 'SMS.RU API error';
+          reject(new Error(errorMsg));
         } else {
           resolve(result);
         }
@@ -301,7 +319,7 @@ export class SmsService {
   async getBalance(): Promise<{ balance: number; currency: string }> {
     try {
       const result = await this.promisifySmsRuCall(
-        this.smsClient.my_balance.bind(this.smsClient),
+        this.smsClient.my_balance,
         {},
       );
 
@@ -313,7 +331,7 @@ export class SmsService {
       } else {
         throw new Error('Failed to get balance');
       }
-    } catch (error) {
+    } catch {
       throw new Error('Ошибка получения баланса');
     }
   }
@@ -323,10 +341,9 @@ export class SmsService {
     smsId: string,
   ): Promise<{ status: string; message: string }> {
     try {
-      const result = await this.promisifySmsRuCall(
-        this.smsClient.sms_status.bind(this.smsClient),
-        { id: smsId },
-      );
+      const result = await this.promisifySmsRuCall(this.smsClient.sms_status, {
+        id: smsId,
+      });
 
       if (result.status === 'OK' && result.sms && result.sms[smsId]) {
         const smsInfo = result.sms[smsId];
@@ -337,7 +354,7 @@ export class SmsService {
       } else {
         throw new Error('Failed to get SMS status');
       }
-    } catch (error) {
+    } catch {
       throw new Error('Ошибка получения статуса SMS');
     }
   }
