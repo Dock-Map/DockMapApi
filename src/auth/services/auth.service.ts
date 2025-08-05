@@ -50,13 +50,13 @@ export class AuthService {
     let user = await this.userService.findByPhone(phone);
 
     if (!user) {
-      // Создаем нового пользователя
+      // Создаем нового пользователя без роли (пользователь выберет позже)
       user = await this.userService.create({
         phone,
         name: `User_${phone.slice(-4)}`,
         authProvider: AuthProvider.SMS,
         isPhoneVerified: true,
-        role: UserRole.OWNER,
+        // role не устанавливаем - пользователь выберет при завершении регистрации
       });
     } else {
       // Обновляем статус верификации

@@ -1,11 +1,68 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UserService } from './user.service';
+import { CompleteRegistrationDto } from './dto/complete-registration.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    userId: string;
+    email: string;
+    name: string;
+    phone: string;
+    role: string;
+  };
+}
 
 @ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Получить информацию о пользователе' })
+  findMe() {
+    return 'me';
+  }
+
+  @Post('complete-registration')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Завершить регистрацию - выбрать город и роль' })
+  @ApiResponse({ status: 200, description: 'Регистрация завершена' })
+  @ApiResponse({ status: 400, description: 'Неверные данные' })
+  async completeRegistration(
+    @Body() completeRegistrationDto: CompleteRegistrationDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userData = req.user;
+    if (!userData?.userId) {
+      throw new Error('Пользователь не найден');
+    }
+
+    const updatedUser = await this.userService.completeRegistration(
+      userData.userId,
+      completeRegistrationDto.cityId,
+      completeRegistrationDto.role,
+    );
+
+    return {
+      message: 'Регистрация завершена',
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        phone: updatedUser.phone,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      },
+    };
+  }
 
   @Get('cities')
   @ApiOperation({ summary: 'Получить список доступных городов' })
