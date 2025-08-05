@@ -59,12 +59,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   telegramCallback(@Query() query: { tgAuthResult: string }): AuthResponseDto {
+    if (!query.tgAuthResult) {
+      throw new Error('Missing tgAuthResult parameter');
+    }
+
     const tgAuthResult = query.tgAuthResult;
+    const base64Data = tgAuthResult.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr = Buffer.from(base64Data, 'base64').toString('utf-8');
 
-    // 2. Преобразуем в строку (Node.js Buffer)
-    const jsonStr = Buffer.from(tgAuthResult, 'base64').toString('utf-8');
-
-    // 3. Парсим JSON
     const userData = JSON.parse(jsonStr) as {
       id: string;
       first_name: string;
