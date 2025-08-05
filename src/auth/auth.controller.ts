@@ -114,6 +114,14 @@ export class AuthController {
     return userData;
   }
 
+  @Get('vk/callback')
+  @ApiOperation({ summary: 'Callback от VK Login Widget' })
+  vkCallback(@Query() query: { code: string }) {
+    console.log(query);
+
+    return { message: 'Callback от VK Login Widget' };
+  }
+
   // Обновление токенов
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
