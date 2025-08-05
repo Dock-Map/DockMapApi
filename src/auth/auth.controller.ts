@@ -20,7 +20,7 @@ import { SendSmsDto } from './dto/send-sms.dto';
 import { VerifySmsDto } from './dto/verify-sms.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
-import { TelegramStrategy } from './strategies/telegram.strategy';
+import { TelegramAuthGuard } from './guards/telegram-auth.guard';
 import { GetUser } from '../shared/decorators/get-user.decorator';
 
 interface AuthenticatedRequest extends Request {
@@ -61,7 +61,7 @@ export class AuthController {
     return this.authService.getTelegramOauthLink();
   }
 
-  @UseGuards(TelegramStrategy)
+  @UseGuards(TelegramAuthGuard)
   @Get('telegram/callback')
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   @ApiResponse({

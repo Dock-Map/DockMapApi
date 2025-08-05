@@ -12,6 +12,7 @@ import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { UserModule } from '../user/user.module';
 import { TelegramStrategy } from './strategies/telegram.strategy';
 import { VkStrategy } from './strategies/vk.strategy';
+import { TelegramAuthGuard } from './guards/telegram-auth.guard';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { VkStrategy } from './strategies/vk.strategy';
     JwtRefreshTokenStrategy,
     TelegramStrategy,
     VkStrategy,
+    TelegramAuthGuard,
   ],
   exports: [AuthService, TokenService, SmsService],
 })
