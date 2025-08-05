@@ -86,9 +86,9 @@ export class SmsService {
 
       // Проверяем режим тестирования
       const isTestMode =
-        this.configService.get<string>('NODE_ENV') === 'development' &&
-        this.configService.get<string>('SMS_TEST_MODE') === 'true';
-
+        this.configService?.get<string>('NODE_ENV') === 'development' &&
+        this.configService?.get<string>('SMS_TEST_MODE') === 'true';
+      console.log(isTestMode, 'isTestMode');
       if (isTestMode) {
         // Сохраняем код в базу данных даже в тестовом режиме
         const verificationCode = this.verificationCodeRepository.create({
@@ -115,13 +115,14 @@ export class SmsService {
       });
 
       await this.verificationCodeRepository.save(verificationCode);
-
+      console.log(verificationCode, 'verificationCode');
       // Отправляем SMS через SMS.RU API используя callback
       const result = await this.promisifySmsRuCall(this.smsClient.sms_send, {
         to: formattedPhone,
         text: message,
         from: this.from,
       });
+      console.log(result, 'result');
 
       if (result.status === 'OK') {
         return {
