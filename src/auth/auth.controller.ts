@@ -9,6 +9,7 @@ import {
   Req,
   Query,
   UnauthorizedException,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +26,7 @@ import { TelegramAuthDto } from './dto/telegram-auth.dto';
 import { VkAuthDto } from './dto/vk-auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
+import { SmsService } from './services/sms.service';
 
 interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
@@ -33,7 +35,10 @@ interface AuthenticatedRequest extends Request {
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private smsService: SmsService,
+  ) {}
 
   @Post('sms/send')
   @ApiOperation({ summary: 'Отправить SMS с кодом верификации' })
@@ -56,6 +61,39 @@ export class AuthController {
       verifySmsDto.code,
       ipAddress,
     );
+  }
+
+  @Get('sms/verification-code/:phone')
+  @ApiOperation({
+    summary: 'Получить код верификации (только для тестирования)',
+  })
+  @ApiResponse({ status: 200, description: 'Код получен' })
+  @ApiResponse({ status: 404, description: 'Код не найден' })
+  async getVerificationCode(@Param('phone') phone: string) {
+    const result = await this.authService.getVerificationCode(phone);
+    if (!result) {
+      throw new UnauthorizedException('Код верификации не найден или истек');
+    }
+    return result;
+  }
+
+  @Post('sms/cleanup')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Очистить истекшие коды верификации' })
+  @ApiResponse({ status: 200, description: 'Коды очищены' })
+  async cleanupExpiredCodes() {
+    await this.authService.cleanupExpiredCodes();
+    return { message: 'Истекшие коды верификации очищены' };
+  }
+
+  @Get('sms/balance')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Получить баланс SMS.RU' })
+  @ApiResponse({ status: 200, description: 'Баланс получен' })
+  async getBalance() {
+    return await this.smsService.getBalance();
   }
 
   @Get('telegram/callback')

@@ -9,6 +9,6 @@ export class VerifySmsDto {
 
   @ApiProperty({ example: '4343', description: 'Код верификации' })
   @IsString()
-  @Length(4, 4)
+  @Length(6, 6)
   code: string;
 }

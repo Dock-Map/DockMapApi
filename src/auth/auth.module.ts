@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
 import { TokenService } from './services/token.service';
@@ -13,11 +14,13 @@ import { UserModule } from '../user/user.module';
 import { TelegramStrategy } from './strategies/telegram.strategy';
 import { VkStrategy } from './strategies/vk.strategy';
 import { TelegramAuthGuard } from './guards/telegram-auth.guard';
+import { VerificationCode } from './entities/verification-code.entity';
 
 @Module({
   imports: [
     PassportModule,
     UserModule,
+    TypeOrmModule.forFeature([VerificationCode]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

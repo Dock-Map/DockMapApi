@@ -48,13 +48,16 @@ export class AuthService {
       throw new UnauthorizedException(verificationResult.message);
     }
 
-    let user = await this.userService.findByPhone(phone);
+    // Получаем отформатированный номер из SMS сервиса
+    const formattedPhone = this.smsService.formatPhoneNumber(phone);
+
+    let user = await this.userService.findByPhone(formattedPhone);
 
     if (!user) {
       // Создаем нового пользователя без роли (пользователь выберет позже)
       user = await this.userService.create({
-        phone,
-        name: `User_${phone.slice(-4)}`,
+        phone: formattedPhone,
+        name: `User_${formattedPhone.slice(-4)}`,
         authProvider: AuthProvider.SMS,
         isPhoneVerified: true,
         // role не устанавливаем - пользователь выберет при завершении регистрации
@@ -195,12 +198,12 @@ export class AuthService {
     return { message: result.message };
   }
 
-  cleanupExpiredCodes(): void {
-    this.smsService.cleanupExpiredCodes();
+  async cleanupExpiredCodes(): Promise<void> {
+    await this.smsService.cleanupExpiredCodes();
   }
 
-  getVerificationCode(): { code: string } | null {
-    return this.smsService.getVerificationCode();
+  async getVerificationCode(phone: string): Promise<{ code: string } | null> {
+    return await this.smsService.getVerificationCode(phone);
   }
 
   private async generateAuthTokens(user: User): Promise<AuthResponseDto> {

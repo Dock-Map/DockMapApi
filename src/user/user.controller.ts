@@ -25,12 +25,6 @@ interface AuthenticatedRequest extends Request {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Получить информацию о пользователе' })
-  findMe() {
-    return 'me';
-  }
-
   @Post('complete-registration')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
