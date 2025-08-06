@@ -2,10 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional } from 'class-validator';
 
 export class VkCallbackDto {
-  @ApiProperty({ description: 'Payload с данными авторизации от VK' })
-  @IsString()
-  payload: string;
-
   @ApiProperty({ description: 'Код авторизации от VK', required: false })
   @IsOptional()
   @IsString()

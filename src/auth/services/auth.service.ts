@@ -151,38 +151,9 @@ export class AuthService {
         throw new UnauthorizedException('VK конфигурация не настроена');
       }
 
-      // Парсим payload если он есть, иначе используем прямые параметры
-      let code: string;
-      let state: string;
-      let deviceId: string;
-
-      if (vkCallbackData.payload) {
-        try {
-          // Декодируем payload из base64
-          const decodedPayload = Buffer.from(
-            vkCallbackData.payload,
-            'base64',
-          ).toString('utf-8');
-          const payloadData = JSON.parse(decodedPayload) as {
-            code: string;
-            state: string;
-            device_id: string;
-            type: string;
-          };
-
-          code = payloadData.code;
-          state = payloadData.state;
-          deviceId = payloadData.device_id;
-        } catch (error) {
-          console.error('Ошибка при парсинге payload:', error);
-          throw new UnauthorizedException('Неверный формат payload');
-        }
-      } else {
-        // Используем прямые параметры
-        code = vkCallbackData.code || '';
-        state = vkCallbackData.state || '';
-        deviceId = vkCallbackData.device_id || '';
-      }
+      const code = vkCallbackData.code || '';
+      const state = vkCallbackData.state || '';
+      const deviceId = vkCallbackData.device_id || '';
 
       if (!code) {
         throw new UnauthorizedException('Код авторизации не найден');
@@ -190,7 +161,6 @@ export class AuthService {
 
       console.log('Обрабатываем VK callback:', { code, state, deviceId });
 
-      // Обмениваем код на токены (без client_secret для публичных приложений)
       const tokenResponse = await axios.post<{
         access_token: string;
         refresh_token: string;
