@@ -7,7 +7,7 @@ import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
 import { ConfigService } from '@nestjs/config';
-import { VkCallbackDto } from '../dto/vk-callback.dto';
+import { VkCallbackPostDto } from '../dto/vk-callback.dto';
 import axios from 'axios';
 
 interface TelegramAuthData {
@@ -140,7 +140,7 @@ export class AuthService {
   }
 
   // Обработка VK callback'а - обмен кода на токены и получение данных пользователя
-  async handleVkCallback(vkCallbackData: VkCallbackDto): Promise<any> {
+  async handleVkCallback(vkCallbackData: VkCallbackPostDto): Promise<any> {
     try {
       // Получаем конфигурацию VK
       const vkClientId = '54007159';
@@ -151,21 +151,23 @@ export class AuthService {
         throw new UnauthorizedException('VK конфигурация не настроена');
       }
 
-      const code = vkCallbackData.code || '';
-      const state = vkCallbackData.state || '';
-      const deviceId = vkCallbackData.device_id || '';
+      const code = vkCallbackData.code;
+      const state = vkCallbackData.state;
+      const deviceId = vkCallbackData.device_id;
+      const codeVerifier = vkCallbackData.codeVerifier;
 
       if (!code) {
         throw new UnauthorizedException('Код авторизации не найден');
       }
 
-      console.log('Обрабатываем VK callback:', { code, state, deviceId });
+      console.log('Обрабатываем VK callback:', vkCallbackData);
 
       const tokenResponse = await axios.post<{
         access_token: string;
         refresh_token: string;
         id_token: string;
         expires_in: number;
+        code_verifier: string;
         user_id: number;
         state: string;
         scope: string;
@@ -175,6 +177,8 @@ export class AuthService {
           client_id: vkClientId,
           grant_type: 'authorization_code',
           code: code,
+          code_verifier: codeVerifier || '',
+          state: state || '',
           redirect_uri: vkRedirectUri,
           device_id: deviceId || '',
         }),
