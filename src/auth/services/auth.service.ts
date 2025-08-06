@@ -7,7 +7,6 @@ import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
 import { ConfigService } from '@nestjs/config';
-import { VkService } from './vk.service';
 
 interface TelegramAuthData {
   id: number;
@@ -35,7 +34,6 @@ export class AuthService {
     private userService: UserService,
     private smsService: SmsService,
     private configService: ConfigService,
-    private vkService: VkService,
   ) {}
 
   // Универсальная авторизация через SMS
@@ -137,23 +135,6 @@ export class AuthService {
     }
 
     return this.generateAuthTokens(user);
-  }
-
-  // Авторизация через VK callback
-  async authenticateWithVkCallback(
-    code: string,
-    ipAddress?: string,
-  ): Promise<AuthResponseDto> {
-    try {
-      // Получаем данные пользователя из VK API
-      const vkUserData = await this.vkService.authenticateWithCode(code);
-
-      // Авторизуем через наш существующий метод
-      return await this.authenticateWithVk(vkUserData, ipAddress);
-    } catch (error) {
-      console.error('Ошибка при авторизации через VK:', error);
-      throw new UnauthorizedException('Не удалось авторизоваться через VK');
-    }
   }
 
   async refreshTokens(

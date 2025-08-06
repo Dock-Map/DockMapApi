@@ -120,21 +120,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
-  async vkCallback(
-    @Query() query: VkCallbackDto,
-    @Req() req: Request,
-  ): Promise<AuthResponseDto> {
-    const ipAddress =
-      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+  vkCallback(@Query() query: VkCallbackDto) {
+    console.log(query, 'query');
 
-    const user = await this.authService.authenticateWithVkCallback(
-      query.code,
-      ipAddress,
-    );
-
-    console.log(user, 'user');
-
-    return user;
+    return query;
   }
 
   // Обновление токенов
