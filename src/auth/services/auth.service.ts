@@ -25,8 +25,6 @@ interface VkAuthData {
   id: string;
   first_name: string;
   last_name: string;
-  screen_name?: string;
-  email?: string;
 }
 
 @Injectable()
@@ -115,15 +113,13 @@ export class AuthService {
     vkData: VkAuthData,
     ipAddress?: string,
   ): Promise<AuthResponseDto> {
-    const { id, first_name, last_name, email } = vkData;
-
+    const { id, first_name, last_name } = vkData;
     let user = await this.userService.findByVkId(id);
 
     if (!user) {
       user = await this.userService.create({
         name: `${first_name} ${last_name}`.trim(),
         phone: `vk_${id}`, // Временный номер для VK
-        email,
         authProvider: AuthProvider.VK,
         providerId: id,
         vkId: id,
@@ -139,8 +135,10 @@ export class AuthService {
     return this.generateAuthTokens(user);
   }
 
-  // Обработка VK callback'а - обмен кода на токены и получение данных пользователя
-  async handleVkCallback(vkCallbackData: VkCallbackPostDto): Promise<any> {
+  async handleVkCallback(
+    vkCallbackData: VkCallbackPostDto,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
     try {
       // Получаем конфигурацию VK
       const vkClientId = '54007159';
@@ -150,7 +148,6 @@ export class AuthService {
       if (!vkClientId || !vkRedirectUri) {
         throw new UnauthorizedException('VK конфигурация не настроена');
       }
-
       const code = vkCallbackData.code;
       const state = vkCallbackData.state;
       const deviceId = vkCallbackData.device_id;
@@ -159,8 +156,6 @@ export class AuthService {
       if (!code) {
         throw new UnauthorizedException('Код авторизации не найден');
       }
-
-      console.log('Обрабатываем VK callback:', vkCallbackData);
 
       const tokenResponse = await axios.post<{
         access_token: string;
@@ -190,8 +185,6 @@ export class AuthService {
       );
 
       const { access_token } = tokenResponse.data;
-      console.log(tokenResponse.data, 'tokenResponse');
-      // Получаем данные пользователя
       const userInfoResponse = await axios.post<{
         user: {
           user_id: string;
@@ -217,12 +210,11 @@ export class AuthService {
         },
       );
 
-      console.log(userInfoResponse.data, 'userInfoResponse.data');
       const userData = userInfoResponse.data.user;
-
-      console.log('Получены данные пользователя VK:', userData);
-
-      return userData;
+      return await this.authenticateWithVk(
+        { ...userData, id: userData.user_id },
+        ipAddress,
+      );
     } catch (error) {
       console.error('Ошибка при обработке VK callback:', error);
       throw new UnauthorizedException('Ошибка авторизации через VK');

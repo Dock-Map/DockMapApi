@@ -141,9 +141,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
-  async vkCallbackPost(@Body() body: VkCallbackPostDto) {
-    await this.authService.handleVkCallback(body);
-    return 'sucsess';
+  async vkCallbackPost(
+    @Body() body: VkCallbackPostDto,
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+    return await this.authService.handleVkCallback(body, ipAddress);
   }
 
   // Обновление токенов
