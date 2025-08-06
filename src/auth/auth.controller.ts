@@ -10,6 +10,7 @@ import {
   Query,
   UnauthorizedException,
   Param,
+  Redirect,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -120,6 +121,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
+  @Redirect()
   vkCallback(@Query() query: VkCallbackDto) {
     const clientUrl = new URL('petbody://auth/vk-callback');
     clientUrl.searchParams.set('code', query.code || '');
