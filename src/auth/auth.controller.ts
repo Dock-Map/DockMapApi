@@ -142,7 +142,7 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
   async vkCallbackPost(@Body() body: VkCallbackPostDto) {
-    const data = await this.authService.handleVkCallback(body);
+    await this.authService.handleVkCallback(body);
     return 'sucsess';
   }
 
