@@ -120,8 +120,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
-  async vkCallback(@Query() query: VkCallbackDto): Promise<any> {
-    return await this.authService.handleVkCallback(query);
+  vkCallback(@Query() query: VkCallbackDto) {
+    const clientUrl = new URL('petbody://auth/vk-callback');
+    clientUrl.searchParams.set('code', query.code || '');
+    clientUrl.searchParams.set('state', query.state || '');
+
+    return {
+      url: clientUrl.toString(),
+      statusCode: 302,
+    };
   }
 
   // Обновление токенов
