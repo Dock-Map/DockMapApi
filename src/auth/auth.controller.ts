@@ -23,7 +23,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { SendSmsDto } from './dto/send-sms.dto';
 import { VerifySmsDto } from './dto/verify-sms.dto';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
-import { VkCallbackDto } from './dto/vk-callback.dto';
+import { VkCallbackDto, VkCallbackPostDto } from './dto/vk-callback.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
@@ -126,11 +126,25 @@ export class AuthController {
     const clientUrl = new URL('petbody://auth/vk-callback');
     clientUrl.searchParams.set('code', query.code || '');
     clientUrl.searchParams.set('state', query.state || '');
+    clientUrl.searchParams.set('device_id', query.device_id || '');
+    clientUrl.searchParams.set('type', query.type || '');
+    clientUrl.searchParams.set('expires_in', query.expires_in || '');
+    clientUrl.searchParams.set('ext_id', query.ext_id || '');
 
     return {
       url: clientUrl.toString(),
       statusCode: 302,
     };
+  }
+
+  @Post('vk/callback')
+  @ApiOperation({ summary: 'Callback от VK Login Widget' })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
+  vkCallbackPost(@Body() body: VkCallbackPostDto) {
+    console.log(body, 'body');
+
+    return 'success';
   }
 
   // Обновление токенов
