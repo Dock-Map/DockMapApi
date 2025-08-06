@@ -12,7 +12,6 @@ import { expiresAccessIn } from 'src/shared/constants';
 import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { UserModule } from '../user/user.module';
 import { TelegramStrategy } from './strategies/telegram.strategy';
-import { VkStrategy } from './strategies/vk.strategy';
 import { TelegramAuthGuard } from './guards/telegram-auth.guard';
 import { VerificationCode } from './entities/verification-code.entity';
 
@@ -40,7 +39,6 @@ import { VerificationCode } from './entities/verification-code.entity';
     JwtStrategy,
     JwtRefreshTokenStrategy,
     TelegramStrategy,
-    VkStrategy,
     TelegramAuthGuard,
   ],
   exports: [AuthService, TokenService, SmsService],
