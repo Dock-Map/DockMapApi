@@ -120,10 +120,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Callback от VK Login Widget' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
-  vkCallback(@Query() query: VkCallbackDto) {
-    console.log(query, 'query');
-
-    return query;
+  async vkCallback(@Query() query: VkCallbackDto): Promise<any> {
+    return await this.authService.handleVkCallback(query);
   }
 
   // Обновление токенов

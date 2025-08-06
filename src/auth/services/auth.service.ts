@@ -7,6 +7,8 @@ import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
 import { ConfigService } from '@nestjs/config';
+import { VkCallbackDto } from '../dto/vk-callback.dto';
+import axios from 'axios';
 
 interface TelegramAuthData {
   id: number;
@@ -135,6 +137,121 @@ export class AuthService {
     }
 
     return this.generateAuthTokens(user);
+  }
+
+  // Обработка VK callback'а - обмен кода на токены и получение данных пользователя
+  async handleVkCallback(vkCallbackData: VkCallbackDto): Promise<any> {
+    try {
+      // Получаем конфигурацию VK
+      const vkClientId = '54007159';
+      const vkRedirectUri =
+        'https://dockmapapi-production.up.railway.app/auth/vk/callback';
+
+      if (!vkClientId || !vkRedirectUri) {
+        throw new UnauthorizedException('VK конфигурация не настроена');
+      }
+
+      // Парсим payload если он есть, иначе используем прямые параметры
+      let code: string;
+      let state: string;
+      let deviceId: string;
+
+      if (vkCallbackData.payload) {
+        try {
+          // Декодируем payload из base64
+          const decodedPayload = Buffer.from(
+            vkCallbackData.payload,
+            'base64',
+          ).toString('utf-8');
+          const payloadData = JSON.parse(decodedPayload) as {
+            code: string;
+            state: string;
+            device_id: string;
+            type: string;
+          };
+
+          code = payloadData.code;
+          state = payloadData.state;
+          deviceId = payloadData.device_id;
+        } catch (error) {
+          console.error('Ошибка при парсинге payload:', error);
+          throw new UnauthorizedException('Неверный формат payload');
+        }
+      } else {
+        // Используем прямые параметры
+        code = vkCallbackData.code || '';
+        state = vkCallbackData.state || '';
+        deviceId = vkCallbackData.device_id || '';
+      }
+
+      if (!code) {
+        throw new UnauthorizedException('Код авторизации не найден');
+      }
+
+      console.log('Обрабатываем VK callback:', { code, state, deviceId });
+
+      // Обмениваем код на токены (без client_secret для публичных приложений)
+      const tokenResponse = await axios.post<{
+        access_token: string;
+        refresh_token: string;
+        id_token: string;
+        expires_in: number;
+        user_id: number;
+        state: string;
+        scope: string;
+      }>(
+        'https://id.vk.com/oauth2/auth',
+        new URLSearchParams({
+          client_id: vkClientId,
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: vkRedirectUri,
+          device_id: deviceId || '',
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      const { access_token } = tokenResponse.data;
+
+      // Получаем данные пользователя
+      const userInfoResponse = await axios.post<{
+        user: {
+          user_id: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          avatar?: string;
+          email?: string;
+          sex?: number;
+          verified?: boolean;
+          birthday?: string;
+        };
+      }>(
+        'https://id.vk.com/oauth2/user_info',
+        new URLSearchParams({
+          access_token,
+          client_id: vkClientId,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      const userData = userInfoResponse.data.user;
+
+      console.log('Получены данные пользователя VK:', userData);
+
+      return userData;
+    } catch (error) {
+      console.error('Ошибка при обработке VK callback:', error);
+      throw new UnauthorizedException('Ошибка авторизации через VK');
+    }
   }
 
   async refreshTokens(
