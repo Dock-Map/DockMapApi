@@ -186,7 +186,7 @@ export class AuthService {
       );
 
       const { access_token } = tokenResponse.data;
-
+      console.log(tokenResponse, 'tokenResponse');
       // Получаем данные пользователя
       const userInfoResponse = await axios.post<{
         user: {
@@ -213,6 +213,7 @@ export class AuthService {
         },
       );
 
+      console.log(userInfoResponse, 'userInfoResponse.data');
       const userData = userInfoResponse.data.user;
 
       console.log('Получены данные пользователя VK:', userData);
