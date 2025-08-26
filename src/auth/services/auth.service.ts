@@ -189,7 +189,6 @@ export class AuthService {
         };
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const tokenResponse = await axios.post<VkTokenResponse>(
         'https://id.vk.com/oauth2/auth',
         new URLSearchParams({
@@ -208,13 +207,10 @@ export class AuthService {
         },
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { access_token } = tokenResponse.data;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const userInfoResponse = await axios.post<VkUserInfoResponse>(
         'https://id.vk.com/oauth2/user_info',
         new URLSearchParams({
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           access_token,
           client_id: vkClientId,
         }),
@@ -225,13 +221,10 @@ export class AuthService {
         },
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const userData = userInfoResponse.data.user;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const vkAuthData: VkAuthData = {
         ...userData,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        id: parseInt(userData.user_id, 10),
+        id: userData.user_id,
       };
       return await this.authenticateWithVk(vkAuthData, ipAddress);
     } catch (error) {
