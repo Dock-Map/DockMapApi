@@ -164,7 +164,7 @@ export class AuthService {
         throw new UnauthorizedException('Код авторизации не найден');
       }
 
-      const tokenResponse = await axios.post<{
+      interface VkTokenResponse {
         access_token: string;
         refresh_token: string;
         id_token: string;
@@ -173,7 +173,24 @@ export class AuthService {
         user_id: number;
         state: string;
         scope: string;
-      }>(
+      }
+
+      interface VkUserInfoResponse {
+        user: {
+          user_id: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          avatar?: string;
+          email?: string;
+          sex?: number;
+          verified?: boolean;
+          birthday?: string;
+        };
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const tokenResponse = await axios.post<VkTokenResponse>(
         'https://id.vk.com/oauth2/auth',
         new URLSearchParams({
           client_id: vkClientId,
@@ -191,22 +208,13 @@ export class AuthService {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const { access_token } = tokenResponse.data;
-      const userInfoResponse = await axios.post<{
-        user: {
-          user_id: string;
-          first_name: string;
-          last_name: string;
-          phone?: string;
-          avatar?: string;
-          email?: string;
-          sex?: number;
-          verified?: boolean;
-          birthday?: string;
-        };
-      }>(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const userInfoResponse = await axios.post<VkUserInfoResponse>(
         'https://id.vk.com/oauth2/user_info',
         new URLSearchParams({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           access_token,
           client_id: vkClientId,
         }),
@@ -217,11 +225,15 @@ export class AuthService {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const userData = userInfoResponse.data.user;
-      return await this.authenticateWithVk(
-        { ...userData, id: userData.user_id },
-        ipAddress,
-      );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const vkAuthData: VkAuthData = {
+        ...userData,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        id: parseInt(userData.user_id, 10),
+      };
+      return await this.authenticateWithVk(vkAuthData, ipAddress);
     } catch (error) {
       console.error('Ошибка при обработке VK callback:', error);
       throw new UnauthorizedException('Ошибка авторизации через VK');
