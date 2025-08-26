@@ -25,7 +25,6 @@ import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { EmailRegisterDto } from './dto/email-register.dto';
 import { EmailLoginDto } from './dto/email-login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
 
