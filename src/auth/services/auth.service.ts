@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 import { TokenService } from './token.service';
 import { UserService } from '../../user/user.service';
@@ -7,6 +11,9 @@ import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
 import { ConfigService } from '@nestjs/config';
+import { EmailRegisterDto } from '../dto/email-register.dto';
+import { EmailLoginDto } from '../dto/email-login.dto';
+import { CreateUserDto } from '../../user/dto/create-user.dto';
 
 interface TelegramAuthData {
   id: number;
@@ -245,5 +252,101 @@ export class AuthService {
 
   async validateUserPassword(hash_password: string, password: string) {
     return compare(password, hash_password);
+  }
+
+  // Регистрация через email/password
+  async registerWithEmail(
+    registerDto: EmailRegisterDto,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
+    const { email, password, name } = registerDto;
+
+    // Проверяем, что пользователь с таким email не существует
+    const existingUser = await this.userService.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException('Пользователь с таким email уже существует');
+    }
+
+    // Хешируем пароль
+    const hashedPassword = await hash(password, 10);
+
+    // Создаем пользователя
+    const createUserData: CreateUserDto = {
+      name,
+      email,
+      password: hashedPassword,
+      phone: `email_${email}`, // Временный номер для email пользователей
+      authProvider: AuthProvider.EMAIL,
+      isEmailVerified: false, // Можно добавить верификацию email позже
+      role: UserRole.OWNER, // По умолчанию для email регистрации
+    };
+
+    const user = await this.userService.create(createUserData);
+
+    // Обновляем информацию о входе
+    if (ipAddress) {
+      await this.userService.updateLastLogin(user.id, ipAddress);
+    }
+
+    return this.generateAuthTokens(user);
+  }
+
+  // Авторизация через email/password
+  async authenticateWithEmail(
+    loginDto: EmailLoginDto,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
+    const { email, password } = loginDto;
+
+    // Находим пользователя по email
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Неверные учетные данные');
+    }
+
+    // Проверяем, что пользователь зарегистрирован через email
+    if (user.authProvider !== AuthProvider.EMAIL) {
+      throw new UnauthorizedException(
+        'Данный email зарегистрирован через другой способ',
+      );
+    }
+
+    // Проверяем пароль
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'Пароль не установлен для данного пользователя',
+      );
+    }
+
+    const isPasswordValid = await compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверные учетные данные');
+    }
+
+    // Обновляем информацию о входе
+    if (ipAddress) {
+      await this.userService.updateLastLogin(user.id, ipAddress);
+    }
+
+    return this.generateAuthTokens(user);
+  }
+
+  // Валидация пользователя для Local Strategy
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userService.findByEmail(email);
+    if (!user || user.authProvider !== AuthProvider.EMAIL) {
+      return null;
+    }
+
+    if (!user.password) {
+      return null;
+    }
+
+    const isPasswordValid = await compare(password, user.password);
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    return user;
   }
 }

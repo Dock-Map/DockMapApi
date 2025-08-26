@@ -53,4 +53,13 @@ export class CreateUserDto {
   @ApiProperty({ description: 'Верификация телефона', default: false })
   @IsOptional()
   isPhoneVerified?: boolean;
+
+  @ApiProperty({ description: 'Пароль пользователя', required: false })
+  @IsOptional()
+  @IsString()
+  password?: string;
+
+  @ApiProperty({ description: 'Верификация email', default: false })
+  @IsOptional()
+  isEmailVerified?: boolean;
 }

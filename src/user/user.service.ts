@@ -31,6 +31,10 @@ export class UserService {
     return this.userRepository.findOne({ where: { phone } });
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
   async findByTelegramId(telegramId: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: {
@@ -54,6 +58,13 @@ export class UserService {
     isVerified: boolean,
   ): Promise<void> {
     await this.userRepository.update(userId, { isPhoneVerified: isVerified });
+  }
+
+  async updateEmailVerification(
+    userId: string,
+    isVerified: boolean,
+  ): Promise<void> {
+    await this.userRepository.update(userId, { isEmailVerified: isVerified });
   }
 
   async updateRefreshToken(

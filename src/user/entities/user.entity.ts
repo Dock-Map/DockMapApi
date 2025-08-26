@@ -11,6 +11,7 @@ export enum AuthProvider {
   SMS = 'sms',
   TELEGRAM = 'telegram',
   VK = 'vk',
+  EMAIL = 'email',
 }
 
 @Entity()
@@ -52,8 +53,14 @@ export class User {
   @Column({ nullable: true })
   vkId: string;
 
+  @Column({ nullable: true })
+  password: string;
+
   @Column({ default: false })
   isPhoneVerified: boolean;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
 
   @Column({ nullable: true })
   refreshTokenHash?: string;

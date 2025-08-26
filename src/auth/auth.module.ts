@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 import { AuthService } from './services/auth.service';
 import { TokenService } from './services/token.service';
 import { SmsService } from './services/sms.service';
@@ -14,6 +15,7 @@ import { UserModule } from '../user/user.module';
 import { TelegramStrategy } from './strategies/telegram.strategy';
 import { VkStrategy } from './strategies/vk.strategy';
 import { TelegramAuthGuard } from './guards/telegram-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { VerificationCode } from './entities/verification-code.entity';
 
 @Module({
@@ -38,10 +40,12 @@ import { VerificationCode } from './entities/verification-code.entity';
     SmsService,
     ConfigService,
     JwtStrategy,
+    LocalStrategy,
     JwtRefreshTokenStrategy,
     TelegramStrategy,
     VkStrategy,
     TelegramAuthGuard,
+    LocalAuthGuard,
   ],
   exports: [AuthService, TokenService, SmsService],
 })

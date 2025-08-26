@@ -22,7 +22,10 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { SendSmsDto } from './dto/send-sms.dto';
 import { VerifySmsDto } from './dto/verify-sms.dto';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
+import { EmailRegisterDto } from './dto/email-register.dto';
+import { EmailLoginDto } from './dto/email-login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
 
@@ -38,6 +41,126 @@ export class AuthController {
     private smsService: SmsService,
   ) {}
 
+  // EMAIL/PASSWORD РЕГИСТРАЦИЯ И АВТОРИЗАЦИЯ
+  @ApiTags('Email Authentication')
+  @Post('email/register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Регистрация через email/password',
+    description:
+      'Создание нового пользователя с авторизацией через email и пароль. Пароль хешируется перед сохранением в базу данных.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Пользователь успешно зарегистрирован',
+    type: AuthResponseDto,
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: 'uuid-string',
+          name: 'Иван Иванов',
+          email: 'user@example.com',
+          phone: 'email_user@example.com',
+          role: 'OWNER',
+          authProvider: 'EMAIL',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверные данные запроса',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'Email обязателен',
+          'Пароль должен содержать минимум 6 символов',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Пользователь с таким email уже существует',
+    schema: {
+      example: {
+        statusCode: 409,
+        message: 'Пользователь с таким email уже существует',
+        error: 'Conflict',
+      },
+    },
+  })
+  async registerWithEmail(
+    @Body() registerDto: EmailRegisterDto,
+    @Req() req: Request,
+  ) {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+    return this.authService.registerWithEmail(registerDto, ipAddress);
+  }
+
+  @ApiTags('Email Authentication')
+  @Post('email/login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Авторизация через email/password',
+    description:
+      'Вход в систему с использованием email и пароля. Возвращает JWT токены для дальнейшей авторизации.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Успешная авторизация',
+    type: AuthResponseDto,
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: 'uuid-string',
+          name: 'Иван Иванов',
+          email: 'user@example.com',
+          phone: 'email_user@example.com',
+          role: 'OWNER',
+          authProvider: 'EMAIL',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверные данные запроса',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: ['Email обязателен', 'Пароль обязателен'],
+        error: 'Bad Request',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description:
+      'Неверные учетные данные или email зарегистрирован через другой способ',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Неверные учетные данные',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  async loginWithEmail(@Body() loginDto: EmailLoginDto, @Req() req: Request) {
+    const ipAddress =
+      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+    return this.authService.authenticateWithEmail(loginDto, ipAddress);
+  }
+
+  // SMS АВТОРИЗАЦИЯ
+  @ApiTags('SMS Authentication')
   @Post('sms/send')
   @ApiOperation({ summary: 'Отправить SMS с кодом верификации' })
   @ApiResponse({ status: 200, description: 'SMS отправлен' })
@@ -46,6 +169,7 @@ export class AuthController {
     return this.authService.sendSms(sendSmsDto.phoneNumber);
   }
 
+  @ApiTags('SMS Authentication')
   @Post('sms/verify')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Проверить SMS код и авторизоваться' })
@@ -61,6 +185,7 @@ export class AuthController {
     );
   }
 
+  @ApiTags('SMS Authentication')
   @Get('sms/verification-code/:phone')
   @ApiOperation({
     summary: 'Получить код верификации (только для тестирования)',
@@ -75,6 +200,7 @@ export class AuthController {
     return result;
   }
 
+  @ApiTags('SMS Authentication')
   @Post('sms/cleanup')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
@@ -85,6 +211,7 @@ export class AuthController {
     return { message: 'Истекшие коды верификации очищены' };
   }
 
+  @ApiTags('SMS Authentication')
   @Get('sms/balance')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
@@ -94,6 +221,7 @@ export class AuthController {
     return await this.smsService.getBalance();
   }
 
+  @ApiTags('Social Authentication')
   @Get('telegram/callback')
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   telegramCallback(@Query() query: { tgAuthResult: string }) {
@@ -116,6 +244,7 @@ export class AuthController {
   }
 
   // Обновление токенов
+  @ApiTags('Token Management')
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Обновить access token' })
@@ -128,6 +257,7 @@ export class AuthController {
     );
   }
 
+  @ApiTags('Token Management')
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -138,6 +268,7 @@ export class AuthController {
     return { message: 'Успешный выход' };
   }
 
+  @ApiTags('Token Management')
   @Post('revoke-all-tokens')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -150,6 +281,7 @@ export class AuthController {
     return { message: 'Все токены отозваны' };
   }
 
+  @ApiTags('Token Management')
   @Post('validate-refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Проверить валидность refresh token' })
@@ -165,6 +297,7 @@ export class AuthController {
     return { valid: true };
   }
 
+  @ApiTags('User Profile')
   @ApiBearerAuth('JWT')
   @Get('me')
   @UseGuards(JwtAuthGuard)
