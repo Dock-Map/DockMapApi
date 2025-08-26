@@ -14,6 +14,8 @@ import { ConfigService } from '@nestjs/config';
 import { EmailRegisterDto } from '../dto/email-register.dto';
 import { EmailLoginDto } from '../dto/email-login.dto';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { VkCallbackPostDto } from '../dto/vk-callback.dto';
+import axios from 'axios';
 
 interface TelegramAuthData {
   id: number;
@@ -30,8 +32,6 @@ interface VkAuthData {
   id: string;
   first_name: string;
   last_name: string;
-  screen_name?: string;
-  email?: string;
 }
 
 @Injectable()
@@ -120,15 +120,13 @@ export class AuthService {
     vkData: VkAuthData,
     ipAddress?: string,
   ): Promise<AuthResponseDto> {
-    const { id, first_name, last_name, email } = vkData;
-
+    const { id, first_name, last_name } = vkData;
     let user = await this.userService.findByVkId(id);
 
     if (!user) {
       user = await this.userService.create({
         name: `${first_name} ${last_name}`.trim(),
         phone: `vk_${id}`, // Временный номер для VK
-        email,
         authProvider: AuthProvider.VK,
         providerId: id,
         vkId: id,
@@ -142,6 +140,92 @@ export class AuthService {
     }
 
     return this.generateAuthTokens(user);
+  }
+
+  async handleVkCallback(
+    vkCallbackData: VkCallbackPostDto,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
+    try {
+      // Получаем конфигурацию VK
+      const vkClientId = '54007159';
+      const vkRedirectUri =
+        'https://dockmapapi-production.up.railway.app/auth/vk/callback';
+
+      if (!vkClientId || !vkRedirectUri) {
+        throw new UnauthorizedException('VK конфигурация не настроена');
+      }
+      const code = vkCallbackData.code;
+      const state = vkCallbackData.state;
+      const deviceId = vkCallbackData.device_id;
+      const codeVerifier = vkCallbackData.codeVerifier;
+
+      if (!code) {
+        throw new UnauthorizedException('Код авторизации не найден');
+      }
+
+      const tokenResponse = await axios.post<{
+        access_token: string;
+        refresh_token: string;
+        id_token: string;
+        expires_in: number;
+        code_verifier: string;
+        user_id: number;
+        state: string;
+        scope: string;
+      }>(
+        'https://id.vk.com/oauth2/auth',
+        new URLSearchParams({
+          client_id: vkClientId,
+          grant_type: 'authorization_code',
+          code: code,
+          code_verifier: codeVerifier || '',
+          state: state || '',
+          redirect_uri: vkRedirectUri,
+          device_id: deviceId || '',
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      const { access_token } = tokenResponse.data;
+      const userInfoResponse = await axios.post<{
+        user: {
+          user_id: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          avatar?: string;
+          email?: string;
+          sex?: number;
+          verified?: boolean;
+          birthday?: string;
+        };
+      }>(
+        'https://id.vk.com/oauth2/user_info',
+        new URLSearchParams({
+          access_token,
+          client_id: vkClientId,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      const userData = userInfoResponse.data.user;
+      return await this.authenticateWithVk(
+        { ...userData, id: userData.user_id },
+        ipAddress,
+      );
+    } catch (error) {
+      console.error('Ошибка при обработке VK callback:', error);
+      throw new UnauthorizedException('Ошибка авторизации через VK');
+    }
   }
 
   async refreshTokens(
