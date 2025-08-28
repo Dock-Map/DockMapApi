@@ -227,7 +227,7 @@ export class AuthController {
   getTelegramOauthLink() {
     return this.authService.getTelegramOauthLink();
   }
-  
+
   @ApiTags('Social Authentication')
   @Get('telegram/callback')
   @Redirect()
@@ -247,7 +247,7 @@ export class AuthController {
       last_name: string;
       username: string;
     };
-    
+
     const clientUrl = new URL('dockmap://auth/telegram-callback');
     clientUrl.searchParams.set('id', userData.id || '');
     clientUrl.searchParams.set('first_name', userData.first_name || '');
