@@ -230,7 +230,6 @@ export class AuthController {
 
   @ApiTags('Social Authentication')
   @Get('telegram/callback')
-  @Redirect()
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   telegramCallback(@Query() query: { tgAuthResult: string }) {
     if (!query.tgAuthResult) {
@@ -248,16 +247,7 @@ export class AuthController {
       username: string;
     };
 
-    const clientUrl = new URL('dockmap://auth/telegram-callback');
-    clientUrl.searchParams.set('id', userData.id || '');
-    clientUrl.searchParams.set('first_name', userData.first_name || '');
-    clientUrl.searchParams.set('last_name', userData.last_name || '');
-    clientUrl.searchParams.set('username', userData.username || '');
-
-    return {
-      url: clientUrl.toString(),
-      statusCode: 302,
-    };
+    return userData;
   }
 
   @Get('vk/callback')
