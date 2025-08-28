@@ -29,6 +29,7 @@ import { VkCallbackDto, VkCallbackPostDto } from './dto/vk-callback.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
+import { TelegramAuthGuard } from './guards/telegram-auth.guard';
 
 interface AuthenticatedRequest extends Request {
   user: AuthResponseDto;
@@ -230,24 +231,10 @@ export class AuthController {
 
   @ApiTags('Social Authentication')
   @Get('telegram/callback')
+  @UseGuards(TelegramAuthGuard)
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
-  telegramCallback(@Query() query: { tgAuthResult: string }) {
-    if (!query.tgAuthResult) {
-      throw new Error('Missing tgAuthResult parameter');
-    }
-
-    const tgAuthResult = query.tgAuthResult;
-    const base64Data = tgAuthResult.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonStr = Buffer.from(base64Data, 'base64').toString('utf-8');
-
-    const userData = JSON.parse(jsonStr) as {
-      id: string;
-      first_name: string;
-      last_name: string;
-      username: string;
-    };
-
-    return userData;
+  telegramCallback(@Req() req: AuthenticatedRequest) {
+    return req.user;
   }
 
   @Get('vk/callback')
