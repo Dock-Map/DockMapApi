@@ -222,8 +222,15 @@ export class AuthController {
     return await this.smsService.getBalance();
   }
 
+  @Get('telegram/oauth-link')
+  @ApiOperation({ summary: 'Получить ссылку для авторизации через Telegram' })
+  getTelegramOauthLink() {
+    return this.authService.getTelegramOauthLink();
+  }
+  
   @ApiTags('Social Authentication')
   @Get('telegram/callback')
+  @Redirect()
   @ApiOperation({ summary: 'Callback от Telegram Login Widget' })
   telegramCallback(@Query() query: { tgAuthResult: string }) {
     if (!query.tgAuthResult) {
@@ -240,8 +247,17 @@ export class AuthController {
       last_name: string;
       username: string;
     };
+    
+    const clientUrl = new URL('dockmap://auth/telegram-callback');
+    clientUrl.searchParams.set('id', userData.id || '');
+    clientUrl.searchParams.set('first_name', userData.first_name || '');
+    clientUrl.searchParams.set('last_name', userData.last_name || '');
+    clientUrl.searchParams.set('username', userData.username || '');
 
-    return userData;
+    return {
+      url: clientUrl.toString(),
+      statusCode: 302,
+    };
   }
 
   @Get('vk/callback')
