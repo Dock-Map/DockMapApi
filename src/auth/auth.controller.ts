@@ -250,7 +250,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Ошибка авторизации через VK' })
   @Redirect()
   vkCallback(@Query() query: VkCallbackDto) {
-    const clientUrl = new URL('petbody://auth/vk-callback');
+    const clientUrl = new URL('dockmap://auth/vk-callback');
     clientUrl.searchParams.set('code', query.code || '');
     clientUrl.searchParams.set('state', query.state || '');
     clientUrl.searchParams.set('device_id', query.device_id || '');
