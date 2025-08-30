@@ -1,0 +1,88 @@
+# Конфигурация для развертывания в Yandex Cloud
+# Используйте этот файл как справочник для настройки сервисов
+
+# Container Registry
+container_registry:
+  name: "dockmap-registry"
+  region: "ru-central1"
+  
+# Serverless Container
+serverless_container:
+  name: "dockmap-api"
+  description: "DockMap API Serverless Container"
+  core_fraction: 100  # Доля vCPU (5%, 20%, 50%, 100%)
+  cores: 1           # Количество vCPU (1, 2, 4)
+  memory: 1          # Память в ГБ (1, 2, 4, 8)
+  concurrency: 16    # Максимальное количество одновременных запросов
+  request_timeout: 60 # Таймаут запроса в секундах
+  log_group_id: ""   # ID группы логов (опционально)
+  
+  # Переменные окружения (будут взяты из .env.production)
+  environment:
+    NODE_ENV: "production"
+    PORT: "3000"
+
+# Managed PostgreSQL
+managed_postgresql:
+  cluster_name: "dockmap-postgres"
+  environment: "PRODUCTION"
+  version: "15"
+  
+  # Конфигурация хоста
+  hosts:
+    - zone_id: "ru-central1-a"
+      assign_public_ip: false
+      
+  # Ресурсы
+  resources:
+    resource_preset_id: "s2.micro"  # 2 vCPU, 8 GB RAM
+    disk_size: 20                   # Размер диска в ГБ
+    disk_type_id: "network-ssd"    # Тип диска
+
+  # База данных
+  databases:
+    - name: "dockmap_prod"
+      owner: "dockmap_user"
+      
+  # Пользователи
+  users:
+    - name: "dockmap_user"
+      grants:
+        - database_name: "dockmap_prod"
+          roles: ["ALL"]
+
+# Object Storage для статических файлов
+object_storage:
+  bucket_name: "dockmap-static"
+  storage_class: "STANDARD"
+  public_read: true
+  
+# API Gateway для маршрутизации
+api_gateway:
+  name: "dockmap-gateway"
+  description: "API Gateway for DockMap"
+  
+  # Спецификация OpenAPI
+  spec:
+    openapi: "3.0.0"
+    info:
+      title: "DockMap API"
+      version: "1.0.0"
+    paths:
+      /api/{proxy+}:
+        x-yc-apigateway-integration:
+          type: "serverless_containers"
+          container_id: "{container_id}"  # Будет заполнено автоматически
+          service_account_id: "{service_account_id}"
+
+# Service Account
+service_account:
+  name: "dockmap-service-account"
+  description: "Service account for DockMap application"
+  
+  # Роли
+  roles:
+    - "container-registry.images.puller"
+    - "serverless-containers.invoker"
+    - "storage.editor"
+    - "mdb.viewer"
