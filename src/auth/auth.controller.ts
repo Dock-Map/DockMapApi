@@ -52,50 +52,6 @@ export class AuthController {
     description:
       'Создание нового пользователя с авторизацией через email и пароль. Пароль хешируется перед сохранением в базу данных.',
   })
-  @ApiResponse({
-    status: 201,
-    description: 'Пользователь успешно зарегистрирован',
-    type: AuthResponseDto,
-    schema: {
-      example: {
-        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-        user: {
-          id: 'uuid-string',
-          name: 'Иван Иванов',
-          email: 'user@example.com',
-          phone: 'email_user@example.com',
-          role: 'OWNER',
-          authProvider: 'EMAIL',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Неверные данные запроса',
-    schema: {
-      example: {
-        statusCode: 400,
-        message: [
-          'Email обязателен',
-          'Пароль должен содержать минимум 6 символов',
-        ],
-        error: 'Bad Request',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Пользователь с таким email уже существует',
-    schema: {
-      example: {
-        statusCode: 409,
-        message: 'Пользователь с таким email уже существует',
-        error: 'Conflict',
-      },
-    },
-  })
   async registerWithEmail(
     @Body() registerDto: EmailRegisterDto,
     @Req() req: Request,
