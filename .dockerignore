@@ -1,6 +1,5 @@
 node_modules
 dist
-test
 coverage
 .git
 .gitignore
@@ -18,5 +17,5 @@ npm-debug.log
 .idea
 *.log
 yarn.lock
-yarn-error.log
 .yarnrc
+docker-compose*.yml

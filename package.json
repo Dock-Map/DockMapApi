@@ -13,6 +13,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "start:prod": "node dist/main",
     "removeBd": "docker rm dock",
     "setupBd": "docker run --name dock -p 5432:5432 -e POSTGRES_PASSWORD=dock -e POSTGRES_USER=dock -e POSTGRES_DB=dock -d postgres",
     "setupBdProd": "docker run --name dock_prod -p 5432:5432 -e POSTGRES_PASSWORD=dock_prod -e POSTGRES_USER=dock_prod -e POSTGRES_DB=dock_prod -d postgres",

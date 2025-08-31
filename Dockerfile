@@ -1,26 +1,44 @@
-FROM node:22-alpine
+# Используем официальный Node.js образ
+FROM node:20-alpine
 
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Устанавливаем зависимости
-RUN apk add --no-cache python3 make g++
+# Устанавливаем системные зависимости для сборки
+RUN apk add --no-cache python3 make g++ && ln -sf python3 /usr/bin/python
 
-# Копируем файлы для установки зависимостей
+# Копируем package.json и package-lock.json
 COPY package.json package-lock.json ./
 
-# Устанавливаем все зависимости для сборки
-RUN npm ci
+# Устанавливаем зависимости
+RUN npm ci --only=production=false
 
-# Копируем исходники
+# Копируем исходный код
 COPY . .
 
 # Собираем приложение
 RUN npm run build
 
-# Очищаем dev зависимости после сборки
-RUN npm prune --production
+# Удаляем dev зависимости для уменьшения размера образа
+RUN npm prune --production && npm cache clean --force
 
-ENV NODE_ENV=production
+# Создаем пользователя для безопасности
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
+
+# Меняем владельца файлов
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+# Открываем порт
 EXPOSE 3000
 
-CMD ["node", "dist/main"] 
+# Устанавливаем переменные окружения
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Проверка здоровья (закомментировано для упрощения деплоя)
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#   CMD node healthcheck.js
+
+# Запускаем приложение
+CMD ["node", "dist/main.js"] 
