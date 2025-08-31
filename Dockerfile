@@ -1,30 +1,18 @@
-# Используем официальный Node.js образ (базовый Debian)
-FROM node:20
-
-# Рабочая директория приложения
+# Build stage
+FROM node:20 AS builder
 WORKDIR /app
-
-# Копируем package.json и package-lock.json
 COPY package.json package-lock.json ./
-
-# Устанавливаем зависимости
-RUN npm ci
-
-# Копируем исходный код
+ENV NODE_ENV=production
+RUN npm ci --include=dev
 COPY . .
-
-# Собираем приложение
 RUN npm run build
 
-# Удаляем dev зависимости
-RUN npm prune --production
-
-# Открываем порт
-EXPOSE 3000
-
-# Переменные окружения
+# Production stage  
+FROM node:20-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
 ENV NODE_ENV=production
-ENV PORT=3000
-
-# Запуск приложения
+RUN npm ci --only=production && npm cache clean --force
+COPY --from=builder /app/dist ./dist
+EXPOSE 3000
 CMD ["node", "dist/main.js"] 
