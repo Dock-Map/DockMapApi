@@ -19,3 +19,6 @@ npm-debug.log
 yarn.lock
 .yarnrc
 docker-compose*.yml
+
+# Timeweb cache buster
+.cache_invalidate
