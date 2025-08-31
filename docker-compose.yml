@@ -21,14 +21,9 @@ services:
       - ./.env.production
     ports:
       - '5488:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  pgdata:
