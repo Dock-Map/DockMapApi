@@ -1,0 +1,4 @@
+build:
+  system_packages: []
+  node_version: "22"
+  package_manager: npm
