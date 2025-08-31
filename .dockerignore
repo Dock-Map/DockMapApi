@@ -1,13 +1,11 @@
 node_modules
 dist
+test
 coverage
 .git
 .gitignore
-README.md
-README_DESCRIPTION.md
-RedameVk.md
-SMS_RU_CONFIG.md
-VK_AUTH_EXAMPLE.md
+.husky
+*.md
 .env*
 !.env.production
 yarn-error.log
@@ -19,6 +17,8 @@ npm-debug.log
 yarn.lock
 .yarnrc
 docker-compose*.yml
-
-# Timeweb cache buster
 .cache_invalidate
+*.spec.ts
+*.test.ts
+.prettierrc
+eslint.config.mjs
