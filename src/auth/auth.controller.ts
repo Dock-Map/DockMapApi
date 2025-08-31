@@ -47,11 +47,6 @@ export class AuthController {
   @ApiTags('Email Authentication')
   @Post('email/register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Регистрация через email/password',
-    description:
-      'Создание нового пользователя с авторизацией через email и пароль. Пароль хешируется перед сохранением в базу данных.',
-  })
   async registerWithEmail(
     @Body() registerDto: EmailRegisterDto,
     @Req() req: Request,
