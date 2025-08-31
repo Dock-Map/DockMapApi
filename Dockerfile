@@ -1,7 +1,7 @@
-# Используем Node.js базовый образ без alpine для совместимости с Timeweb
+# Используем официальный Node.js образ (базовый Debian)
 FROM node:20
 
-# Устанавливаем рабочую директорию
+# Рабочая директория приложения
 WORKDIR /app
 
 # Копируем package.json и package-lock.json
@@ -26,5 +26,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Запускаем приложение
+# Запуск приложения
 CMD ["node", "dist/main.js"] 
