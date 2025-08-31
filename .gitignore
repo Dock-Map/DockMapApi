@@ -55,3 +55,19 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Kubernetes secrets and config
+k8s/secret-real.yaml
+k8s/*-secret.yaml
+*.key
+*.crt
+*.pem
+~/.config/yandex-cloud/key.json
+
+# Database backups
+*.sql
+*.dump
+
+# Deployment config backups  
+*.yaml.bak
+*.yml.bak
