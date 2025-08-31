@@ -17,5 +17,6 @@ npm-debug.log
 .vscode
 .idea
 *.log
+yarn.lock
+yarn-error.log
 .yarnrc
-.npmrc
