@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class HealthCheckService {
-  async healthCheckDb(): Promise<string> {
+  healthCheckDb(): Promise<string> {
     // Временно отключено для тестирования
-    return 'DB check disabled for testing';
+    return Promise.resolve('DB check disabled for testing');
   }
 }
