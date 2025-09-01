@@ -10,6 +10,7 @@ import { AuthService } from './services/auth.service';
 import { TokenService } from './services/token.service';
 import { SmsService } from './services/sms.service';
 import { EmailService } from './services/email.service';
+import { EmailApiService } from './services/email-api.service';
 import { expiresAccessIn } from 'src/shared/constants';
 import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { UserModule } from '../user/user.module';
@@ -39,6 +40,7 @@ import { VerificationCode } from './entities/verification-code.entity';
     TokenService,
     SmsService,
     EmailService,
+    EmailApiService,
     ConfigService,
     JwtStrategy,
     LocalStrategy,
@@ -47,6 +49,6 @@ import { VerificationCode } from './entities/verification-code.entity';
     TelegramAuthGuard,
     LocalAuthGuard,
   ],
-  exports: [AuthService, TokenService, SmsService, EmailService],
+  exports: [AuthService, TokenService, SmsService, EmailService, EmailApiService],
 })
 export class AuthModule {}

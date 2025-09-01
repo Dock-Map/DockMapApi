@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import { EmailApiService } from './email-api.service';
 
 @Injectable()
 export class EmailService {
   private transporter: Transporter;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private emailApiService: EmailApiService,
+  ) {
     const emailUser =
       this.configService.get<string>('EMAIL_USER') || 'your_email@gmail.com';
     const emailProvider = this.getEmailProvider(emailUser);
@@ -19,19 +23,40 @@ export class EmailService {
     // Удаляем пробелы из App Password (на всякий случай)
     const cleanPassword = emailPassword.replace(/\s+/g, '');
 
-    this.transporter = nodemailer.createTransport({
-      service: emailProvider,
-      auth: {
-        user: emailUser,
-        pass: cleanPassword,
-      },
-      // Дополнительные настройки для Gmail
-      ...(emailProvider === 'gmail' && {
-        port: 587,
-        secure: false, // true для 465, false для других портов
-        requireTLS: true,
-      }),
-    });
+    // Настройки для хостинга - пробуем разные порты
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (emailProvider === 'gmail') {
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: isProduction ? 465 : 587, // На хостинге часто блокируют 587
+        secure: isProduction, // true для 465, false для 587
+        auth: {
+          user: emailUser,
+          pass: cleanPassword,
+        },
+        connectionTimeout: 60000, // 60 секунд
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
+        // Для хостингов с проблемами SSL
+        ...(isProduction && {
+          tls: {
+            rejectUnauthorized: false,
+          },
+        }),
+      });
+    } else {
+      this.transporter = nodemailer.createTransport({
+        service: emailProvider,
+        auth: {
+          user: emailUser,
+          pass: cleanPassword,
+        },
+        connectionTimeout: 60000,
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
+      });
+    }
   }
 
   private getEmailProvider(email: string): string {
@@ -107,8 +132,10 @@ DockMap - Сброс пароля
       console.log('Email sent successfully:', result.messageId);
       return true;
     } catch (error) {
-      console.error('Failed to send email:', error);
-      return false;
+      console.error('SMTP failed, trying API services:', error);
+      
+      // Если SMTP не работает, пробуем API сервисы
+      return await this.emailApiService.sendResetPasswordCode(email, code);
     }
   }
 
