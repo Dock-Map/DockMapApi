@@ -19,6 +19,7 @@ import { EmailRegisterDto } from '../dto/email-register.dto';
 import { EmailLoginDto } from '../dto/email-login.dto';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { VkCallbackPostDto } from '../dto/vk-callback.dto';
+import { BCRYPT_ROUNDS } from '../../shared/constants';
 import axios from 'axios';
 
 interface TelegramAuthData {
@@ -320,17 +321,24 @@ export class AuthService {
   }
 
   private async generateAuthTokens(user: User): Promise<AuthResponseDto> {
-    const accessToken = await this.tokenService.generateAccessToken(
-      user.id,
-      user.name,
-    );
-    const refreshToken = await this.tokenService.generateRefreshToken(
-      user.id,
-      user.name,
-    );
+    // Генерируем токены параллельно
+    const [accessToken, refreshToken] = await Promise.all([
+      this.tokenService.generateAccessToken(user.id, user.name),
+      this.tokenService.generateRefreshToken(user.id, user.name),
+    ]);
 
-    const refreshTokenHash = await hash(refreshToken, 10);
-    await this.userService.updateRefreshToken(user.id, refreshTokenHash);
+    // Хешируем refresh token с оптимизированными rounds
+    const refreshTokenHash = await hash(refreshToken, BCRYPT_ROUNDS);
+
+    // Обновляем refresh token асинхронно (не блокируем ответ)
+    setImmediate(async () => {
+      try {
+        await this.userService.updateRefreshToken(user.id, refreshTokenHash);
+        console.log(`[TOKEN] Refresh token updated for user: ${user.id}`);
+      } catch (error) {
+        console.error(`[TOKEN] Failed to update refresh token:`, error);
+      }
+    });
 
     return {
       accessToken,
@@ -355,16 +363,28 @@ export class AuthService {
     registerDto: EmailRegisterDto,
     ipAddress?: string,
   ): Promise<AuthResponseDto> {
+    const startTime = Date.now();
     const { email, password, name } = registerDto;
 
+    console.log(`[EMAIL REGISTRATION] Starting for: ${email}`);
+
     // Проверяем, что пользователь с таким email не существует
+    const checkStartTime = Date.now();
     const existingUser = await this.userService.findByEmail(email);
+    console.log(
+      `[EMAIL REGISTRATION] Email check took: ${Date.now() - checkStartTime}ms`,
+    );
+
     if (existingUser) {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
 
-    // Хешируем пароль
-    const hashedPassword = await hash(password, 10);
+    // Хешируем пароль с оптимизированными rounds
+    const hashStartTime = Date.now();
+    const hashedPassword = await hash(password, BCRYPT_ROUNDS);
+    console.log(
+      `[EMAIL REGISTRATION] Password hashing took: ${Date.now() - hashStartTime}ms (rounds: ${BCRYPT_ROUNDS})`,
+    );
 
     // Создаем пользователя
     const createUserData: CreateUserDto = {
@@ -377,14 +397,39 @@ export class AuthService {
       role: UserRole.OWNER, // По умолчанию для email регистрации
     };
 
+    const createStartTime = Date.now();
     const user = await this.userService.create(createUserData);
-    console.log(user, 'user');
-    // Обновляем информацию о входе
+    console.log(
+      `[EMAIL REGISTRATION] User creation took: ${Date.now() - createStartTime}ms`,
+    );
+
+    // Обновляем информацию о входе асинхронно (не блокируем ответ)
     if (ipAddress) {
-      await this.userService.updateLastLogin(user.id, ipAddress);
+      setImmediate(async () => {
+        try {
+          await this.userService.updateLastLogin(user.id, ipAddress);
+          console.log(
+            `[EMAIL REGISTRATION] Last login updated for: ${user.id}`,
+          );
+        } catch (error) {
+          console.error(
+            `[EMAIL REGISTRATION] Failed to update last login:`,
+            error,
+          );
+        }
+      });
     }
 
-    return this.generateAuthTokens(user);
+    const tokensStartTime = Date.now();
+    const result = await this.generateAuthTokens(user);
+    console.log(
+      `[EMAIL REGISTRATION] Token generation took: ${Date.now() - tokensStartTime}ms`,
+    );
+
+    console.log(
+      `[EMAIL REGISTRATION] Total time: ${Date.now() - startTime}ms for ${email}`,
+    );
+    return result;
   }
 
   // Авторизация через email/password
@@ -596,7 +641,7 @@ export class AuthService {
       }
 
       // Хешируем новый пароль
-      const hashedPassword = await hash(newPassword, 10);
+      const hashedPassword = await hash(newPassword, BCRYPT_ROUNDS);
 
       // Обновляем пароль пользователя
       await this.userService.updatePassword(user.id, hashedPassword);

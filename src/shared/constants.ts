@@ -3,3 +3,6 @@ export const expiresRefreshIn = '15d';
 
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
+
+// bcrypt rounds для разных окружений
+export const BCRYPT_ROUNDS = process.env.NODE_ENV === 'production' ? 8 : 10;
