@@ -451,7 +451,9 @@ export class AuthService {
   /**
    * Отправить код для сброса пароля на email
    */
-  async sendPasswordResetCode(email: string): Promise<{ success: boolean; message: string }> {
+  async sendPasswordResetCode(
+    email: string,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       // Проверяем, существует ли пользователь с таким email
       const user = await this.userService.findByEmail(email);
@@ -459,7 +461,8 @@ export class AuthService {
         // Возвращаем успешный ответ даже если пользователь не найден (безопасность)
         return {
           success: true,
-          message: 'Если указанный email существует в системе, код был отправлен',
+          message:
+            'Если указанный email существует в системе, код был отправлен',
         };
       }
 
@@ -492,8 +495,11 @@ export class AuthService {
       await this.verificationCodeRepository.save(verificationCode);
 
       // Отправляем email с кодом
-      const emailSent = await this.emailService.sendResetPasswordCode(email, code);
-      
+      const emailSent = await this.emailService.sendResetPasswordCode(
+        email,
+        code,
+      );
+
       if (!emailSent) {
         return {
           success: false,
@@ -517,7 +523,10 @@ export class AuthService {
   /**
    * Проверить код сброса пароля
    */
-  async verifyPasswordResetCode(email: string, code: string): Promise<{ success: boolean; message: string }> {
+  async verifyPasswordResetCode(
+    email: string,
+    code: string,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       // Находим действующий код
       const verificationCode = await this.verificationCodeRepository.findOne({
@@ -562,10 +571,17 @@ export class AuthService {
   /**
    * Сбросить пароль (установить новый пароль)
    */
-  async resetPassword(email: string, code: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       // Проверяем код еще раз
-      const verificationResult = await this.verifyPasswordResetCode(email, code);
+      const verificationResult = await this.verifyPasswordResetCode(
+        email,
+        code,
+      );
       if (!verificationResult.success) {
         return verificationResult;
       }
@@ -595,7 +611,7 @@ export class AuthService {
         },
         {
           isUsed: true,
-        }
+        },
       );
 
       // Отзываем все токены пользователя для безопасности

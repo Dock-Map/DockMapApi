@@ -7,20 +7,36 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
-    // Настройка транспорта для Gmail (можно заменить на другой провайдер)
+    const emailUser =
+      this.configService.get<string>('EMAIL_USER') || 'your_email@gmail.com';
+    const emailProvider = this.getEmailProvider(emailUser);
+
+    // Настройка транспорта в зависимости от провайдера
     this.transporter = nodemailer.createTransporter({
-      service: 'gmail',
+      service: emailProvider,
       auth: {
-        user: this.configService.get<string>('EMAIL_USER') || 'your_email@gmail.com',
-        pass: this.configService.get<string>('EMAIL_PASSWORD') || 'your_app_password',
+        user: emailUser,
+        pass:
+          this.configService.get<string>('EMAIL_PASSWORD') ||
+          'your_app_password',
       },
     });
+  }
+
+  private getEmailProvider(email: string): string {
+    if (email.includes('@gmail.com')) return 'gmail';
+    if (email.includes('@yandex.ru') || email.includes('@yandex.com'))
+      return 'yandex';
+    if (email.includes('@mail.ru')) return 'mail.ru';
+    return 'gmail'; // дефолт
   }
 
   async sendResetPasswordCode(email: string, code: string): Promise<boolean> {
     try {
       const mailOptions = {
-        from: this.configService.get<string>('EMAIL_FROM') || 'DockMap <noreply@dockmap.com>',
+        from:
+          this.configService.get<string>('EMAIL_FROM') ||
+          'DockMap <noreply@dockmap.com>',
         to: email,
         subject: 'Сброс пароля DockMap',
         html: `
