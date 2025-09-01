@@ -26,9 +26,7 @@ import { VerificationCode } from './entities/verification-code.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        secret:
-          configService.get<string>('JWT_SECRET') ||
-          'dockServerKeyProd',
+        secret: configService.get<string>('JWT_SECRET') || 'dockServerKeyProd',
         signOptions: { expiresIn: expiresAccessIn },
       }),
       inject: [ConfigService],

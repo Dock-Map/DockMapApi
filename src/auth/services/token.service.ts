@@ -18,8 +18,7 @@ export class TokenService {
       },
       {
         secret:
-          this.configService.get<string>('JWT_SECRET') ||
-          'dockServerKeyProd',
+          this.configService.get<string>('JWT_SECRET') || 'dockServerKeyProd',
         expiresIn: expiresAccessIn,
       },
     );
