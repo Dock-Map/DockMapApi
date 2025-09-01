@@ -133,7 +133,7 @@ DockMap - Сброс пароля
       return true;
     } catch (error) {
       console.error('SMTP failed, trying API services:', error);
-      
+
       // Если SMTP не работает, пробуем API сервисы
       return await this.emailApiService.sendResetPasswordCode(email, code);
     }
