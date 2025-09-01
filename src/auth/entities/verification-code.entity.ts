@@ -11,9 +11,13 @@ export class VerificationCode {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   @Index()
-  phoneNumber: string;
+  phoneNumber?: string;
+
+  @Column({ nullable: true })
+  @Index()
+  email?: string;
 
   @Column()
   code: string;
@@ -23,6 +27,13 @@ export class VerificationCode {
 
   @Column()
   expiresAt: Date;
+
+  @Column({ 
+    type: 'enum', 
+    enum: ['SMS', 'EMAIL', 'PASSWORD_RESET'], 
+    default: 'SMS' 
+  })
+  type: 'SMS' | 'EMAIL' | 'PASSWORD_RESET';
 
   @CreateDateColumn()
   createdAt: Date;

@@ -5,7 +5,6 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-
   "scripts": {
     "build": "nest build --webpack",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -33,6 +32,7 @@
     "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky; fi"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -51,6 +51,7 @@
     "class-validator": "^0.14.2",
     "easy-yandex-s3": "^2.0.0",
     "firebase-admin": "^13.4.0",
+    "nodemailer": "^7.0.6",
     "passport": "^0.7.0",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",

@@ -85,6 +85,10 @@ export class UserService {
     });
   }
 
+  async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+    await this.userRepository.update(userId, { password: hashedPassword });
+  }
+
   async completeRegistration(
     userId: string,
     cityId: number,

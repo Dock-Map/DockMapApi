@@ -26,6 +26,9 @@ import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { EmailRegisterDto } from './dto/email-register.dto';
 import { EmailLoginDto } from './dto/email-login.dto';
 import { VkCallbackDto, VkCallbackPostDto } from './dto/vk-callback.dto';
+import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
+import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
@@ -283,5 +286,116 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Данные пользователя' })
   getProfile(@Req() req: AuthenticatedRequest): AuthResponseDto {
     return req.user;
+  }
+
+  // СБРОС ПАРОЛЯ ЧЕРЕЗ EMAIL
+  @ApiTags('Password Reset')
+  @Post('password/reset-request')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Запросить сброс пароля через email',
+    description: 'Отправляет 6-значный код подтверждения на указанный email для сброса пароля. Код действителен 10 минут.'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Код отправлен на email',
+    schema: {
+      example: {
+        success: true,
+        message: 'Код для сброса пароля отправлен на email'
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Неверные данные запроса',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: ['Некорректный формат email'],
+        error: 'Bad Request'
+      }
+    }
+  })
+  async requestPasswordReset(@Body() resetRequestDto: ResetPasswordRequestDto) {
+    return this.authService.sendPasswordResetCode(resetRequestDto.email);
+  }
+
+  @ApiTags('Password Reset')
+  @Post('password/verify-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Проверить код сброса пароля',
+    description: 'Проверяет правильность 6-значного кода для сброса пароля'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Код подтвержден',
+    schema: {
+      example: {
+        success: true,
+        message: 'Код подтвержден. Можете установить новый пароль'
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Неверный или истекший код',
+    schema: {
+      example: {
+        success: false,
+        message: 'Неверный код или код не найден'
+      }
+    }
+  })
+  async verifyResetCode(@Body() verifyCodeDto: VerifyResetCodeDto) {
+    return this.authService.verifyPasswordResetCode(verifyCodeDto.email, verifyCodeDto.code);
+  }
+
+  @ApiTags('Password Reset')
+  @Post('password/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Установить новый пароль',
+    description: 'Устанавливает новый пароль после подтверждения кода. Отзывает все существующие токены для безопасности.'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Пароль успешно изменен',
+    schema: {
+      example: {
+        success: true,
+        message: 'Пароль успешно изменен'
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Неверный код или ошибка валидации',
+    schema: {
+      example: {
+        success: false,
+        message: 'Неверный код или код не найден'
+      }
+    }
+  })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.code,
+      resetPasswordDto.newPassword
+    );
+  }
+
+  @ApiTags('Password Reset')
+  @Post('password/cleanup-expired')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Очистить истекшие коды сброса пароля (только для администраторов)' })
+  @ApiResponse({ status: 200, description: 'Истекшие коды очищены' })
+  async cleanupExpiredPasswordResetCodes() {
+    await this.authService.cleanupExpiredPasswordResetCodes();
+    return { message: 'Истекшие коды сброса пароля очищены' };
   }
 }

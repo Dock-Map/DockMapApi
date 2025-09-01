@@ -10,7 +10,11 @@ import { AuthProvider, User } from '../../user/entities/user.entity';
 import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { SmsService } from './sms.service';
+import { EmailService } from './email.service';
 import { ConfigService } from '@nestjs/config';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { VerificationCode } from '../entities/verification-code.entity';
 import { EmailRegisterDto } from '../dto/email-register.dto';
 import { EmailLoginDto } from '../dto/email-login.dto';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
@@ -40,7 +44,10 @@ export class AuthService {
     private tokenService: TokenService,
     private userService: UserService,
     private smsService: SmsService,
+    private emailService: EmailService,
     private configService: ConfigService,
+    @InjectRepository(VerificationCode)
+    private verificationCodeRepository: Repository<VerificationCode>,
   ) {}
 
   // Универсальная авторизация через SMS
@@ -437,5 +444,189 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  // МЕТОДЫ ДЛЯ СБРОСА ПАРОЛЯ ЧЕРЕЗ EMAIL
+
+  /**
+   * Отправить код для сброса пароля на email
+   */
+  async sendPasswordResetCode(email: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Проверяем, существует ли пользователь с таким email
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        // Возвращаем успешный ответ даже если пользователь не найден (безопасность)
+        return {
+          success: true,
+          message: 'Если указанный email существует в системе, код был отправлен',
+        };
+      }
+
+      // Проверяем, что пользователь зарегистрирован через email
+      if (user.authProvider !== AuthProvider.EMAIL) {
+        return {
+          success: false,
+          message: 'Данный email зарегистрирован через социальную сеть',
+        };
+      }
+
+      // Генерируем 6-значный код
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Удаляем старые коды для этого email
+      await this.verificationCodeRepository.delete({
+        email,
+        type: 'PASSWORD_RESET',
+      });
+
+      // Сохраняем новый код в базе (TTL 10 минут)
+      const verificationCode = this.verificationCodeRepository.create({
+        email,
+        code,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 минут
+        isUsed: false,
+        type: 'PASSWORD_RESET',
+      });
+
+      await this.verificationCodeRepository.save(verificationCode);
+
+      // Отправляем email с кодом
+      const emailSent = await this.emailService.sendResetPasswordCode(email, code);
+      
+      if (!emailSent) {
+        return {
+          success: false,
+          message: 'Ошибка отправки email. Попробуйте позже',
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Код для сброса пароля отправлен на email',
+      };
+    } catch (error) {
+      console.error('Error sending password reset code:', error);
+      return {
+        success: false,
+        message: 'Произошла ошибка. Попробуйте позже',
+      };
+    }
+  }
+
+  /**
+   * Проверить код сброса пароля
+   */
+  async verifyPasswordResetCode(email: string, code: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Находим действующий код
+      const verificationCode = await this.verificationCodeRepository.findOne({
+        where: {
+          email,
+          code,
+          type: 'PASSWORD_RESET',
+          isUsed: false,
+        },
+      });
+
+      if (!verificationCode) {
+        return {
+          success: false,
+          message: 'Неверный код или код не найден',
+        };
+      }
+
+      // Проверяем, не истек ли код
+      if (verificationCode.expiresAt < new Date()) {
+        // Удаляем истекший код
+        await this.verificationCodeRepository.delete(verificationCode.id);
+        return {
+          success: false,
+          message: 'Код истек. Запросите новый код',
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Код подтвержден. Можете установить новый пароль',
+      };
+    } catch (error) {
+      console.error('Error verifying password reset code:', error);
+      return {
+        success: false,
+        message: 'Произошла ошибка. Попробуйте позже',
+      };
+    }
+  }
+
+  /**
+   * Сбросить пароль (установить новый пароль)
+   */
+  async resetPassword(email: string, code: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Проверяем код еще раз
+      const verificationResult = await this.verifyPasswordResetCode(email, code);
+      if (!verificationResult.success) {
+        return verificationResult;
+      }
+
+      // Находим пользователя
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        return {
+          success: false,
+          message: 'Пользователь не найден',
+        };
+      }
+
+      // Хешируем новый пароль
+      const hashedPassword = await hash(newPassword, 10);
+
+      // Обновляем пароль пользователя
+      await this.userService.updatePassword(user.id, hashedPassword);
+
+      // Помечаем код как использованный
+      await this.verificationCodeRepository.update(
+        {
+          email,
+          code,
+          type: 'PASSWORD_RESET',
+          isUsed: false,
+        },
+        {
+          isUsed: true,
+        }
+      );
+
+      // Отзываем все токены пользователя для безопасности
+      await this.revokeAllTokens(user.id);
+
+      return {
+        success: true,
+        message: 'Пароль успешно изменен',
+      };
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return {
+        success: false,
+        message: 'Произошла ошибка. Попробуйте позже',
+      };
+    }
+  }
+
+  /**
+   * Очистить истекшие коды сброса пароля
+   */
+  async cleanupExpiredPasswordResetCodes(): Promise<void> {
+    try {
+      await this.verificationCodeRepository
+        .createQueryBuilder()
+        .delete()
+        .where('type = :type', { type: 'PASSWORD_RESET' })
+        .andWhere('expiresAt < :now', { now: new Date() })
+        .execute();
+    } catch (error) {
+      console.error('Error cleaning up expired password reset codes:', error);
+    }
   }
 }
