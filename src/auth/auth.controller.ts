@@ -422,7 +422,10 @@ export class AuthController {
   async testEmail(@Body() body: { email: string }) {
     const emailService = new (
       await import('./services/email.service')
-    ).EmailService(this.authService['configService']);
+    ).EmailService(
+      this.authService['configService'], 
+      this.authService['emailApiService']
+    );
 
     const connectionTest = await emailService.testConnection();
     if (!connectionTest) {
