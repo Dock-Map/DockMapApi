@@ -19,7 +19,7 @@ export class TokenService {
       {
         secret:
           this.configService.get<string>('JWT_SECRET') ||
-          'your_super_secret_jwt_key_change_this_in_production_2024',
+          'dockServerKeyProd',
         expiresIn: expiresAccessIn,
       },
     );
@@ -34,7 +34,7 @@ export class TokenService {
       {
         secret:
           this.configService.get<string>('JWT_SECRET_REFRESH') ||
-          'your_super_secret_refresh_key_change_this_in_production_2024',
+          'dockServerKeyRefreshProd',
         expiresIn: expiresRefreshIn,
       },
     );

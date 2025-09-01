@@ -19,7 +19,7 @@
 host: '192.168.0.5';
 port: 5432;
 username: 'dock_prod';
-password: '********'; // Замените на ваш пароль
+password: 'dock_prod';
 database: 'dock_prod';
 ```
 
@@ -27,14 +27,14 @@ database: 'dock_prod';
 
 **ВАЖНО:** Все переменные имеют дефолтные значения в коде. Ничего дополнительно указывать в панели Timeweb НЕ НУЖНО.
 
-Дефолтные значения:
+Дефолтные значения (из .env.production):
 
-- `JWT_SECRET`: `your_super_secret_jwt_key_change_this_in_production_2024`
-- `JWT_SECRET_REFRESH`: `your_super_secret_refresh_key_change_this_in_production_2024`
+- `JWT_SECRET`: `dockServerKeyProd`
+- `JWT_SECRET_REFRESH`: `dockServerKeyRefreshProd`
 - `DATABASE_HOST`: `192.168.0.5`
 - `DATABASE_PORT`: `5432`
 - `DATABASE_USER`: `dock_prod`
-- `DATABASE_PASSWORD`: `********`
+- `DATABASE_PASSWORD`: `dock_prod`
 - `DATABASE_NAME`: `dock_prod`
 
 ### 4. Деплой в Timeweb Cloud Apps
@@ -72,15 +72,13 @@ database: 'dock_prod';
 
 ### 7. Безопасность
 
-**Обязательно замените** дефолтные JWT секреты в production:
+Все JWT секреты и пароли уже настроены из `.env.production`:
 
-1. Зайдите в панель Timeweb Cloud Apps
-2. Добавьте переменные окружения:
-   - `JWT_SECRET`: ваш*секретный*ключ
-   - `JWT_SECRET_REFRESH`: ваш*секретный*ключ_refresh
-   - `DATABASE_PASSWORD`: ваш*пароль*от_бд
+- ✅ `JWT_SECRET`: `dockServerKeyProd`
+- ✅ `JWT_SECRET_REFRESH`: `dockServerKeyRefreshProd`  
+- ✅ `DATABASE_PASSWORD`: `dock_prod`
 
-Или измените значения в коде перед деплоем.
+Никаких дополнительных настроек не требуется.
 
 ### 8. Troubleshooting
 

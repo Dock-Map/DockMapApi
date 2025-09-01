@@ -28,7 +28,7 @@ import { VerificationCode } from './entities/verification-code.entity';
       useFactory: (configService: ConfigService) => ({
         secret:
           configService.get<string>('JWT_SECRET') ||
-          'your_super_secret_jwt_key_change_this_in_production_2024',
+          'dockServerKeyProd',
         signOptions: { expiresIn: expiresAccessIn },
       }),
       inject: [ConfigService],

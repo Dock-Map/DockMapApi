@@ -14,7 +14,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
       ignoreExpiration: false,
       secretOrKey:
         configService.get<string>('JWT_SECRET_REFRESH') ||
-        'your_super_secret_refresh_key_change_this_in_production_2024',
+        'dockServerKeyRefreshProd',
     });
   }
 
