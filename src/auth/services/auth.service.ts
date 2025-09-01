@@ -378,7 +378,7 @@ export class AuthService {
     };
 
     const user = await this.userService.create(createUserData);
-
+    console.log(user, 'user');
     // Обновляем информацию о входе
     if (ipAddress) {
       await this.userService.updateLastLogin(user.id, ipAddress);
