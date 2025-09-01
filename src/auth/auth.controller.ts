@@ -410,28 +410,35 @@ export class AuthController {
   @ApiTags('Password Reset')
   @Post('email/test')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Тестовая отправка email (для отладки)',
-    description: 'Проверяет подключение к email серверу и отправляет тестовое сообщение'
+    description:
+      'Проверяет подключение к email серверу и отправляет тестовое сообщение',
   })
-  @ApiResponse({ status: 200, description: 'Email отправлен или ошибка подключения' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email отправлен или ошибка подключения',
+  })
   async testEmail(@Body() body: { email: string }) {
-    const emailService = new (await import('./services/email.service')).EmailService(
-      this.authService['configService']
-    );
-    
+    const emailService = new (
+      await import('./services/email.service')
+    ).EmailService(this.authService['configService']);
+
     const connectionTest = await emailService.testConnection();
     if (!connectionTest) {
-      return { 
-        success: false, 
-        message: 'Ошибка подключения к email серверу. Проверьте настройки.' 
+      return {
+        success: false,
+        message: 'Ошибка подключения к email серверу. Проверьте настройки.',
       };
     }
 
-    const emailSent = await emailService.sendResetPasswordCode(body.email, '123456');
+    const emailSent = await emailService.sendResetPasswordCode(
+      body.email,
+      '123456',
+    );
     return {
       success: emailSent,
-      message: emailSent ? 'Тестовый email отправлен' : 'Ошибка отправки email'
+      message: emailSent ? 'Тестовый email отправлен' : 'Ошибка отправки email',
     };
   }
 }
