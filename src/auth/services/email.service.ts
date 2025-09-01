@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { createTransporter, Transporter } from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: Transporter;
 
   constructor(private configService: ConfigService) {
     const emailUser =
@@ -12,7 +12,8 @@ export class EmailService {
     const emailProvider = this.getEmailProvider(emailUser);
 
     // Настройка транспорта в зависимости от провайдера
-    this.transporter = nodemailer.createTransporter({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    this.transporter = createTransporter({
       service: emailProvider,
       auth: {
         user: emailUser,
@@ -90,7 +91,9 @@ DockMap - Сброс пароля
         `,
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const result = await this.transporter.sendMail(mailOptions);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       console.log('Email sent successfully:', result.messageId);
       return true;
     } catch (error) {
@@ -101,6 +104,7 @@ DockMap - Сброс пароля
 
   async testConnection(): Promise<boolean> {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       await this.transporter.verify();
       return true;
     } catch (error) {

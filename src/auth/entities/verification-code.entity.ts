@@ -28,10 +28,10 @@ export class VerificationCode {
   @Column()
   expiresAt: Date;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ['SMS', 'EMAIL', 'PASSWORD_RESET'], 
-    default: 'SMS' 
+  @Column({
+    type: 'enum',
+    enum: ['SMS', 'EMAIL', 'PASSWORD_RESET'],
+    default: 'SMS',
   })
   type: 'SMS' | 'EMAIL' | 'PASSWORD_RESET';
 
