@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createTransporter, Transporter } from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private transporter: Transporter;
+  private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
     const emailUser =
@@ -12,8 +12,8 @@ export class EmailService {
     const emailProvider = this.getEmailProvider(emailUser);
 
     // Настройка транспорта в зависимости от провайдера
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    this.transporter = createTransporter({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    this.transporter = nodemailer.createTransporter({
       service: emailProvider,
       auth: {
         user: emailUser,
