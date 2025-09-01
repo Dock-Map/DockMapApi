@@ -13,7 +13,7 @@ export class EmailService {
 
     // Настройка транспорта в зависимости от провайдера
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer?.createTransport({
       service: emailProvider,
       auth: {
         user: emailUser,
