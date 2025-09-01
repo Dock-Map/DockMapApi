@@ -423,8 +423,8 @@ export class AuthController {
     const emailService = new (
       await import('./services/email.service')
     ).EmailService(
-      this.authService['configService'], 
-      this.authService['emailApiService']
+      this.authService['configService'],
+      this.authService['emailApiService'],
     );
 
     const connectionTest = await emailService.testConnection();
