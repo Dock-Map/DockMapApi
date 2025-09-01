@@ -13,14 +13,24 @@ export class EmailService {
     const emailProvider = this.getEmailProvider(emailUser);
 
     // Настройка транспорта в зависимости от провайдера
+    const emailPassword =
+      this.configService.get<string>('EMAIL_PASSWORD') || 'your_app_password';
+
+    // Удаляем пробелы из App Password (на всякий случай)
+    const cleanPassword = emailPassword.replace(/\s+/g, '');
+
     this.transporter = nodemailer.createTransport({
       service: emailProvider,
       auth: {
         user: emailUser,
-        pass:
-          this.configService.get<string>('EMAIL_PASSWORD') ||
-          'your_app_password',
+        pass: cleanPassword,
       },
+      // Дополнительные настройки для Gmail
+      ...(emailProvider === 'gmail' && {
+        port: 587,
+        secure: false, // true для 465, false для других портов
+        requireTLS: true,
+      }),
     });
   }
 
