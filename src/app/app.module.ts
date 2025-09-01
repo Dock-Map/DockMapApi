@@ -20,15 +20,27 @@ import { VerificationCode } from 'src/auth/entities/verification-code.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        // Дефолтные значения для Timeweb Cloud Apps
+        const isProduction = process.env.NODE_ENV === 'production';
+
         return {
           type: 'postgres',
-          host: configService.get<string>('DATABASE_HOST'),
-          port: configService.get<number>('DATABASE_PORT'),
-          username: configService.get<string>('DATABASE_USER'),
-          password: configService.get<string>('DATABASE_PASSWORD'),
-          database: configService.get<string>('DATABASE_NAME'),
+          host:
+            configService.get<string>('DATABASE_HOST') ||
+            (isProduction ? '192.168.0.5' : 'localhost'),
+          port: configService.get<number>('DATABASE_PORT') || 5432,
+          username:
+            configService.get<string>('DATABASE_USER') ||
+            (isProduction ? 'dock_prod' : 'dock'),
+          password:
+            configService.get<string>('DATABASE_PASSWORD') ||
+            (isProduction ? 'dock_prod' : 'dock'),
+          database:
+            configService.get<string>('DATABASE_NAME') ||
+            (isProduction ? 'dock_prod' : 'dock'),
           synchronize: true,
           entities: [User, VerificationCode],
+          ssl: isProduction ? { rejectUnauthorized: false } : false,
         };
       },
     }),
