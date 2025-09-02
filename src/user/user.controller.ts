@@ -17,6 +17,7 @@ interface AuthenticatedRequest extends Request {
     name: string;
     phone: string;
     role: string;
+    cityId: number;
   };
 }
 
@@ -54,6 +55,7 @@ export class UserController {
         phone: updatedUser.phone,
         email: updatedUser.email,
         role: updatedUser.role,
+        cityId: updatedUser.cityId,
       },
     };
   }
