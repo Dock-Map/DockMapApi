@@ -45,12 +45,13 @@ export class EmailService {
           },
         }),
       });
-    } else if (emailProvider === 'mail.ru') {
-      // Настройки для Mail.ru согласно документации
+    } else {
+      // Mail.ru SMTP настройки (по умолчанию)
+      // Mail.ru сам доставляет письма на Gmail, Yandex, Outlook и др.
       this.transporter = nodemailer.createTransport({
         host: this.configService.get<string>('SMTP_HOST') || 'smtp.mail.ru',
         port: parseInt(this.configService.get<string>('SMTP_PORT') || '465'),
-        secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL/TLS
+        secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL/TLS обязательно
         auth: {
           user: emailUser,
           pass: cleanPassword,
@@ -58,24 +59,14 @@ export class EmailService {
         connectionTimeout: 60000,
         greetingTimeout: 30000,
         socketTimeout: 60000,
+        // Настройки для стабильной работы на хостинге
+        tls: {
+          rejectUnauthorized: false, // Для совместимости с хостингами
+        },
         // Дополнительные настройки для Mail.ru
-        ...(isProduction && {
-          tls: {
-            rejectUnauthorized: false,
-          },
-        }),
-      });
-    } else {
-      // Для остальных провайдеров (Yandex, и т.д.)
-      this.transporter = nodemailer.createTransport({
-        service: emailProvider,
-        auth: {
-          user: emailUser,
-          pass: cleanPassword,
-        },
-        connectionTimeout: 60000,
-        greetingTimeout: 30000,
-        socketTimeout: 60000,
+        pool: true, // Используем пул соединений для производительности
+        maxConnections: 5,
+        maxMessages: 100,
       });
     }
   }
@@ -90,11 +81,13 @@ export class EmailService {
 
   async sendResetPasswordCode(email: string, code: string): Promise<boolean> {
     try {
+      // Mail.ru SMTP автоматически доставляет письма на любые домены:
+      // NestJS → Mail.ru SMTP → Mail.ru доставляет → Gmail/Yandex/Outlook/etc
       const mailOptions = {
         from:
           this.configService.get<string>('EMAIL_FROM') ||
           'DockMap <dock.map@mail.ru>',
-        to: email,
+        to: email, // Может быть любой email: @gmail.com, @yandex.ru, @outlook.com
         subject: 'Сброс пароля DockMap',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
