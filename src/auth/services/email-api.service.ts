@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailApiService {
@@ -12,27 +13,98 @@ export class EmailApiService {
    */
   async sendViaHttpApi(email: string, code: string): Promise<boolean> {
     try {
-      console.log(`[HTTP API] Trying HTTP fallback for Railway...`);
+      console.log(`[RESEND API] Trying Resend SDK for Railway...`);
 
-      // Можно использовать EmailJS, Postmark или другой HTTP API
-      const emailContent = `
-        Код сброса пароля DockMap: ${code}
-        
-        Код действителен 10 минут.
-        Если вы не запрашивали сброс - игнорируйте письмо.
-      `;
+      // Получаем API ключ (с fallback на ваш реальный ключ)
+      const resendApiKey =
+        this.configService.get<string>('RESEND_API_KEY') ||
+        're_LAtYTjtx_HLULz1ymBHcZwuDkj2WzYqGy';
 
-      // Для Railway можно использовать webhook сервис
-      const webhookUrl = 'https://api.emailjs.com/api/v1.0/email/send'; // Пример
+      console.log(
+        `[RESEND API] Using API key: ${resendApiKey.substring(0, 10)}...`,
+      );
 
-      console.log(`[HTTP API] Would send email to ${email} with code ${code}`);
-      console.log(`[HTTP API] Content: ${emailContent}`);
+      // Инициализируем Resend SDK
+      const resend = new Resend(resendApiKey);
 
-      // Пока возвращаем false, чтобы перейти к симуляции
-      // В будущем здесь можно настроить реальный HTTP API
-      return false;
+      // Отправляем email через официальный SDK
+      const result = await resend.emails.send({
+        from: 'DockMap <onboarding@resend.dev>',
+        to: [email],
+        subject: 'Сброс пароля DockMap',
+        html: this.getEmailTemplate(code),
+      });
+
+      if (result.error) {
+        throw new Error(`Resend error: ${result.error.message}`);
+      }
+
+      console.log(
+        `[RESEND API] ✅ Email sent successfully via Resend SDK:`,
+        result.data?.id,
+      );
+      return true;
     } catch (error) {
-      console.error('[HTTP API] Error:', error.message);
+      console.error('[RESEND API] Failed:', error.message);
+
+      // Fallback к SendGrid
+      return await this.sendViaSendGrid(email, code);
+    }
+  }
+
+  /**
+   * SendGrid API fallback для Railway
+   */
+  async sendViaSendGrid(email: string, code: string): Promise<boolean> {
+    try {
+      console.log(`[SENDGRID API] Trying SendGrid for Railway...`);
+
+      const payload = {
+        personalizations: [
+          {
+            to: [{ email }],
+            subject: 'Сброс пароля DockMap',
+          },
+        ],
+        from: {
+          email: 'noreply@dockmap.dev',
+          name: 'DockMap',
+        },
+        content: [
+          {
+            type: 'text/html',
+            value: this.getEmailTemplate(code),
+          },
+        ],
+      };
+
+      // Получаем реальный SendGrid API ключ
+      const sendGridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
+
+      if (!sendGridApiKey) {
+        console.log(`[SENDGRID API] API key not configured, skipping...`);
+        throw new Error('SENDGRID_API_KEY not configured');
+      }
+
+      const response = await axios.post(
+        'https://api.sendgrid.com/v3/mail/send',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${sendGridApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        },
+      );
+
+      console.log(`[SENDGRID API] ✅ Email sent via SendGrid`);
+      return true;
+    } catch (error) {
+      console.error(
+        '[SENDGRID API] Failed:',
+        error.response?.data || error.message,
+      );
       return false;
     }
   }
