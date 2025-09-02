@@ -103,11 +103,8 @@ export class UserService {
     if (!user) {
       throw new Error('User not found');
     }
-
-    // Обновляем пользователя с выбранным городом и ролью
     user.role = role;
-    // Здесь можно добавить поле для города пользователя, если нужно
-    // user.cityId = cityId;
+    user.cityId = cityId;
 
     return this.userRepository.save(user);
   }

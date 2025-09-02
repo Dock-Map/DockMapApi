@@ -54,6 +54,9 @@ export class User {
   vkId: string;
 
   @Column({ nullable: true })
+  cityId: number;
+
+  @Column({ nullable: true })
   password: string;
 
   @Column({ default: false })
