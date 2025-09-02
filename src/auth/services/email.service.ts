@@ -179,11 +179,15 @@ DockMap - Сброс пароля
     } catch (error) {
       const totalTime = Date.now() - startTime;
       console.error(`[EMAIL] SMTP failed after ${totalTime}ms:`, error.message);
-      
+
       // Логируем детали ошибки для диагностики
       if (error.message.includes('550')) {
-        console.error(`[EMAIL] Mail.ru SMTP error 550 - возможно аккаунт dock.map@mail.ru имеет ограничения`);
-        console.log(`[EMAIL] Попробуйте использовать другой email или настроить API ключи`);
+        console.error(
+          `[EMAIL] Mail.ru SMTP error 550 - возможно аккаунт dock.map@mail.ru имеет ограничения`,
+        );
+        console.log(
+          `[EMAIL] Попробуйте использовать другой email или настроить API ключи`,
+        );
       }
 
       // Быстрый fallback к API сервисам
@@ -201,8 +205,12 @@ DockMap - Сброс пароля
           );
           return result;
         } else {
-          console.warn(`[EMAIL] EmailApiService not available, simulating success`);
-          console.log(`[EMAIL] Reset code for ${email}: ${code} (для тестирования)`);
+          console.warn(
+            `[EMAIL] EmailApiService not available, simulating success`,
+          );
+          console.log(
+            `[EMAIL] Reset code for ${email}: ${code} (для тестирования)`,
+          );
           return true; // Временно возвращаем true для тестирования
         }
       } catch (fallbackError) {
