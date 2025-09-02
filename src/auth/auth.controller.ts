@@ -410,6 +410,21 @@ export class AuthController {
   }
 
   @ApiTags('Password Reset')
+  @Get('password/verification-code/:email')
+  @ApiOperation({
+    summary: 'Получить код верификации для email (только для тестирования)',
+  })
+  @ApiResponse({ status: 200, description: 'Код получен' })
+  @ApiResponse({ status: 404, description: 'Код не найден' })
+  async getPasswordResetCode(@Param('email') email: string) {
+    const result = await this.authService.getPasswordResetCode(email);
+    if (!result) {
+      throw new UnauthorizedException('Код верификации не найден или истек');
+    }
+    return result;
+  }
+
+  @ApiTags('Password Reset')
   @Post('email/test')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

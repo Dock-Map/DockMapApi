@@ -320,6 +320,30 @@ export class AuthService {
     return await this.smsService.getVerificationCode(phone);
   }
 
+  // Только для тестирования - получение кода сброса пароля по email
+  async getPasswordResetCode(email: string): Promise<{ code: string } | null> {
+    try {
+      const verificationCode = await this.verificationCodeRepository.findOne({
+        where: {
+          email,
+          type: 'PASSWORD_RESET',
+          isUsed: false,
+        },
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+
+      if (verificationCode && verificationCode.expiresAt > new Date()) {
+        return { code: verificationCode.code };
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   private async generateAuthTokens(user: User): Promise<AuthResponseDto> {
     // Генерируем токены параллельно
     const [accessToken, refreshToken] = await Promise.all([
