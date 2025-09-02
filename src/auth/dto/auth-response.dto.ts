@@ -15,5 +15,6 @@ export class AuthResponseDto {
     email?: string;
     role: string;
     authProvider: string;
+    cityId: number;
   };
 }

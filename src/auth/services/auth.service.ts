@@ -349,6 +349,7 @@ export class AuthService {
         phone: user.phone,
         email: user.email,
         role: user.role,
+        cityId: user.cityId,
         authProvider: user.authProvider,
       },
     };
