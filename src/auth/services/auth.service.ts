@@ -661,7 +661,7 @@ export class AuthService {
       );
 
       // Отзываем все токены пользователя для безопасности
-      await this.revokeAllTokens(user.id);
+      void this.revokeAllTokens(user.id);
 
       return {
         success: true,
