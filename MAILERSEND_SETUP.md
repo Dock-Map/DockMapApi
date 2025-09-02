@@ -47,16 +47,16 @@ MAILERSEND_FROM_NAME=DockMap
 #### Railway
 
 ```bash
-railway variables set MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8c67cec6c69912951d4f0c9
-railway variables set MAILERSEND_FROM_EMAIL=noreply@trial-3vz9dlez0jv4kj50.mlsender.net
+railway variables set MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d
+railway variables set MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net
 railway variables set MAILERSEND_FROM_NAME=DockMap
 ```
 
 #### Docker
 
 ```bash
-docker run -e MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8c67cec6c69912951d4f0c9 \
-           -e MAILERSEND_FROM_EMAIL=noreply@trial-3vz9dlez0jv4kj50.mlsender.net \
+docker run -e MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d \
+           -e MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net \
            -e MAILERSEND_FROM_NAME=DockMap \
            your-app
 ```
@@ -79,12 +79,11 @@ docker run -e MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8
 ```
 [MAILERSEND API] Sending email to: user@example.com
 [MAILERSEND SDK] Trying MailerSend SDK...
-[MAILERSEND] Using API key: mlsn.e596169615...
-[MAILERSEND] MailerSend instance created, sending email...
-[MAILERSEND] Trying sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
-[MAILERSEND] Sending email to: user@example.com from: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND] Using API key: mlsn.ce978212dc...
+[MAILERSEND] Sending from: hello@test-pzkmgq7656vl059v.mlsender.net
+[MAILERSEND] Sending email to: user@example.com
 [MAILERSEND] Raw result: {"statusCode":202}
-[MAILERSEND] ✅ Email sent successfully with sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND] ✅ Email sent successfully
 [MAILERSEND SDK] ✅ Email sent successfully
 ```
 
@@ -93,20 +92,22 @@ docker run -e MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8
 ```
 [MAILERSEND SDK] Failed: [error details]
 [MAILERSEND HTTP] Trying direct HTTP API...
-[MAILERSEND HTTP] Trying sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND HTTP] Sending from: hello@test-pzkmgq7656vl059v.mlsender.net
 [MAILERSEND HTTP] Response status: 202
-[MAILERSEND HTTP] ✅ Email sent successfully with sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND HTTP] ✅ Email sent successfully
 ```
 
 ### 🔧 Troubleshooting
 
-#### 1. Trial Domain Errors
+#### 1. Domain Configuration
 
-Если получаете ошибки с trial доменом, система автоматически попробует:
+Используется ваш настроенный домен:
 
-- `hello@trial-3vz9dlez0jv4kj50.mlsender.net`
-- `noreply@trial-3vz9dlez0jv4kj50.mlsender.net`
-- `test@trial-3vz9dlez0jv4kj50.mlsender.net`
+- `hello@test-pzkmgq7656vl059v.mlsender.net`
+
+**Важно**: Код автоматически исправляет email если в переменной окружения указан только домен без префикса:
+
+- `test-pzkmgq7656vl059v.mlsender.net` → `hello@test-pzkmgq7656vl059v.mlsender.net`
 
 #### 2. API Key Issues
 
@@ -125,8 +126,8 @@ docker run -e MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8
 Для отладки включены детальные логи на каждом этапе:
 
 - Инициализация API ключа
-- Создание экземпляра MailerSend
-- Попытка отправки с разными sender'ами
+- Настройка sender домена
+- Статус отправки
 - Детальные ошибки при неудаче
 
 ### 📋 Лимиты

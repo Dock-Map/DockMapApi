@@ -67,9 +67,20 @@ export class EmailApiService {
     });
 
     // Используем только ваш домен
-    const fromEmail =
+    let fromEmail =
       this.configService.get<string>('MAILERSEND_FROM_EMAIL') ||
       'hello@test-pzkmgq7656vl059v.mlsender.net';
+
+    // Исправляем email если указан только домен без префикса
+    if (!fromEmail.includes('@')) {
+      fromEmail = `hello@${fromEmail}`;
+    } else if (
+      !fromEmail.startsWith('hello@') &&
+      fromEmail.includes('test-pzkmgq7656vl059v.mlsender.net')
+    ) {
+      fromEmail = 'hello@test-pzkmgq7656vl059v.mlsender.net';
+    }
+
     const fromName =
       this.configService.get<string>('MAILERSEND_FROM_NAME') || 'DockMap';
 
@@ -112,9 +123,20 @@ export class EmailApiService {
     );
 
     // Используем только ваш домен
-    const fromEmail =
+    let fromEmail =
       this.configService.get<string>('MAILERSEND_FROM_EMAIL') ||
       'hello@test-pzkmgq7656vl059v.mlsender.net';
+
+    // Исправляем email если указан только домен без префикса
+    if (!fromEmail.includes('@')) {
+      fromEmail = `hello@${fromEmail}`;
+    } else if (
+      !fromEmail.startsWith('hello@') &&
+      fromEmail.includes('test-pzkmgq7656vl059v.mlsender.net')
+    ) {
+      fromEmail = 'hello@test-pzkmgq7656vl059v.mlsender.net';
+    }
+
     const fromName =
       this.configService.get<string>('MAILERSEND_FROM_NAME') || 'DockMap';
 
