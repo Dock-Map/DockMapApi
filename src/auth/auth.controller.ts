@@ -54,8 +54,8 @@ export class AuthController {
     @Body() registerDto: EmailRegisterDto,
     @Req() req: Request,
   ) {
-    const ipAddress =
-      req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+    const ipAddress = '127.0.0.1';
+    //req.ip || req.connection.remoteAddress || req?.socket?.remoteAddress;
     return this.authService.registerWithEmail(registerDto, ipAddress);
   }
 
