@@ -74,13 +74,60 @@ docker run -e MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8
 
 После настройки переменных окружения, отправка email будет происходить через MailerSend API.
 
-Логи в консоли покажут:
+**Успешная отправка - логи в консоли:**
 
 ```
 [MAILERSEND API] Sending email to: user@example.com
+[MAILERSEND SDK] Trying MailerSend SDK...
+[MAILERSEND] Using API key: mlsn.e596169615...
 [MAILERSEND] MailerSend instance created, sending email...
-[MAILERSEND] ✅ Email sent successfully
+[MAILERSEND] Trying sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND] Sending email to: user@example.com from: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND] Raw result: {"statusCode":202}
+[MAILERSEND] ✅ Email sent successfully with sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND SDK] ✅ Email sent successfully
 ```
+
+**Если SDK не работает - используется HTTP fallback:**
+
+```
+[MAILERSEND SDK] Failed: [error details]
+[MAILERSEND HTTP] Trying direct HTTP API...
+[MAILERSEND HTTP] Trying sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+[MAILERSEND HTTP] Response status: 202
+[MAILERSEND HTTP] ✅ Email sent successfully with sender: hello@trial-3vz9dlez0jv4kj50.mlsender.net
+```
+
+### 🔧 Troubleshooting
+
+#### 1. Trial Domain Errors
+
+Если получаете ошибки с trial доменом, система автоматически попробует:
+
+- `hello@trial-3vz9dlez0jv4kj50.mlsender.net`
+- `noreply@trial-3vz9dlez0jv4kj50.mlsender.net`
+- `test@trial-3vz9dlez0jv4kj50.mlsender.net`
+
+#### 2. API Key Issues
+
+- Убедитесь, что API ключ действителен в MailerSend панели
+- Проверьте права доступа для токена (должен иметь права на отправку email)
+
+#### 3. Fallback System
+
+Система имеет двойную защиту:
+
+1. **MailerSend SDK** - основной метод
+2. **HTTP API** - fallback при проблемах с SDK
+
+#### 4. Detailed Logging
+
+Для отладки включены детальные логи на каждом этапе:
+
+- Инициализация API ключа
+- Создание экземпляра MailerSend
+- Попытка отправки с разными sender'ами
+- Детальные ошибки при неудаче
 
 ### 📋 Лимиты
 
