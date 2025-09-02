@@ -448,28 +448,26 @@ export class AuthController {
     description: 'Некорректные данные',
   })
   async testEmail(@Body() body: { email: string }) {
-    const emailService = new (
-      await import('./services/email.service')
-    ).EmailService(
-      this.authService['configService'],
-      this.authService['emailApiService'],
-    );
+    try {
+      console.log(`[TEST EMAIL] Testing email send to: ${body.email}`);
 
-    const connectionTest = await emailService.testConnection();
-    if (!connectionTest) {
+      // Используем emailService из authService напрямую
+      const emailSent = await this.authService[
+        'emailService'
+      ].sendResetPasswordCode(body.email, '123456');
+
+      return {
+        success: emailSent,
+        message: emailSent
+          ? 'Тестовый email отправлен успешно'
+          : 'Ошибка отправки email',
+      };
+    } catch (error) {
+      console.error('[TEST EMAIL] Error:', error.message);
       return {
         success: false,
-        message: 'Ошибка подключения к email серверу. Проверьте настройки.',
+        message: `Ошибка тестирования email: ${error.message}`,
       };
     }
-
-    const emailSent = await emailService.sendResetPasswordCode(
-      body.email,
-      '123456',
-    );
-    return {
-      success: emailSent,
-      message: emailSent ? 'Тестовый email отправлен' : 'Ошибка отправки email',
-    };
   }
 }
