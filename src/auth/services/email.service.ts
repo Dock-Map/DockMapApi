@@ -36,9 +36,9 @@ export class EmailService {
           user: emailUser,
           pass: cleanPassword,
         },
-        connectionTimeout: 60000,
-        greetingTimeout: 30000,
-        socketTimeout: 60000,
+        connectionTimeout: 10000, // 10 секунд вместо 60
+        greetingTimeout: 5000, // 5 секунд вместо 30
+        socketTimeout: 10000, // 10 секунд вместо 60
         ...(isProduction && {
           tls: {
             rejectUnauthorized: false,
@@ -56,9 +56,9 @@ export class EmailService {
           user: emailUser,
           pass: cleanPassword,
         },
-        connectionTimeout: 60000,
-        greetingTimeout: 30000,
-        socketTimeout: 60000,
+        connectionTimeout: 10000, // 10 секунд вместо 60
+        greetingTimeout: 5000, // 5 секунд вместо 30
+        socketTimeout: 10000, // 10 секунд вместо 60
         // Настройки для стабильной работы на хостинге
         tls: {
           rejectUnauthorized: false, // Для совместимости с хостингами
@@ -80,7 +80,33 @@ export class EmailService {
   }
 
   async sendResetPasswordCode(email: string, code: string): Promise<boolean> {
+    console.log(`[EMAIL] Attempting to send reset code to: ${email}`);
+    const startTime = Date.now();
+
     try {
+      // Быстрая проверка подключения с таймаутом
+      const connectionCheck = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Connection timeout after 8 seconds'));
+        }, 8000); // 8 секунд максимум на подключение
+
+        this.transporter
+          .verify()
+          .then(() => {
+            clearTimeout(timeout);
+            resolve(true);
+          })
+          .catch((error) => {
+            clearTimeout(timeout);
+            reject(error);
+          });
+      });
+
+      await connectionCheck;
+      console.log(
+        `[EMAIL] SMTP connection verified in ${Date.now() - startTime}ms`,
+      );
+
       // Mail.ru SMTP автоматически доставляет письма на любые домены:
       // NestJS → Mail.ru SMTP → Mail.ru доставляет → Gmail/Yandex/Outlook/etc
       const mailOptions = {
@@ -140,25 +166,58 @@ DockMap - Сброс пароля
         `,
       };
 
+      const sendStartTime = Date.now();
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.transporter.sendMail(mailOptions);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      console.log('Email sent successfully:', result.messageId);
+      console.log(
+        `[EMAIL] SMTP sent successfully in ${Date.now() - sendStartTime}ms:`,
+        result.messageId,
+      );
+      console.log(`[EMAIL] Total time: ${Date.now() - startTime}ms`);
       return true;
     } catch (error) {
-      console.error('SMTP failed, trying API services:', error);
+      const totalTime = Date.now() - startTime;
+      console.error(`[EMAIL] SMTP failed after ${totalTime}ms:`, error.message);
 
-      // Если SMTP не работает, пробуем API сервисы
-      return await this.emailApiService.sendResetPasswordCode(email, code);
+      // Быстрый fallback к API сервисам
+      console.log(`[EMAIL] Falling back to API services for: ${email}`);
+      const fallbackStartTime = Date.now();
+
+      try {
+        const result = await this.emailApiService.sendResetPasswordCode(
+          email,
+          code,
+        );
+        console.log(
+          `[EMAIL] API fallback completed in ${Date.now() - fallbackStartTime}ms`,
+        );
+        return result;
+      } catch (fallbackError) {
+        console.error(
+          `[EMAIL] All methods failed after ${Date.now() - startTime}ms:`,
+          fallbackError.message,
+        );
+        return false;
+      }
     }
   }
 
   async testConnection(): Promise<boolean> {
     try {
-      await this.transporter.verify();
+      // Быстрая проверка с таймаутом
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Test connection timeout')), 5000);
+      });
+
+      await Promise.race([
+        this.transporter.verify(),
+        timeoutPromise
+      ]);
+      
       return true;
     } catch (error) {
-      console.error('Email service connection failed:', error);
+      console.error('[EMAIL] Test connection failed:', error.message);
       return false;
     }
   }
