@@ -210,11 +210,8 @@ DockMap - Сброс пароля
         setTimeout(() => reject(new Error('Test connection timeout')), 5000);
       });
 
-      await Promise.race([
-        this.transporter.verify(),
-        timeoutPromise
-      ]);
-      
+      await Promise.race([this.transporter.verify(), timeoutPromise]);
+
       return true;
     } catch (error) {
       console.error('[EMAIL] Test connection failed:', error.message);

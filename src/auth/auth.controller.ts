@@ -17,6 +17,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiBody,
 } from '@nestjs/swagger';
 import { AuthService } from './services/auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -29,6 +30,7 @@ import { VkCallbackDto, VkCallbackPostDto } from './dto/vk-callback.dto';
 import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { TestEmailDto } from './dto/test-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
@@ -319,7 +321,7 @@ export class AuthController {
     },
   })
   async requestPasswordReset(@Body() resetRequestDto: ResetPasswordRequestDto) {
-    return this.authService.sendPasswordResetCode(resetRequestDto.email);
+    return this.authService.sendPasswordResetCode(resetRequestDto?.email);
   }
 
   @ApiTags('Password Reset')
@@ -413,13 +415,28 @@ export class AuthController {
   @ApiOperation({
     summary: 'Тестовая отправка email (для отладки)',
     description:
-      'Проверяет подключение к email серверу и отправляет тестовое сообщение',
+      'Проверяет подключение к email серверу и отправляет тестовое сообщение с кодом 123456',
+  })
+  @ApiBody({
+    type: TestEmailDto,
+    description: 'Email адрес для тестовой отправки',
   })
   @ApiResponse({
     status: 200,
     description: 'Email отправлен или ошибка подключения',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Тестовый email отправлен' },
+      },
+    },
   })
-  async testEmail(@Body() body: { email: string }) {
+  @ApiResponse({
+    status: 400,
+    description: 'Некорректные данные',
+  })
+  async testEmail(@Body() testEmailDto: TestEmailDto) {
     const emailService = new (
       await import('./services/email.service')
     ).EmailService(
@@ -436,7 +453,7 @@ export class AuthController {
     }
 
     const emailSent = await emailService.sendResetPasswordCode(
-      body.email,
+      testEmailDto.email,
       '123456',
     );
     return {
