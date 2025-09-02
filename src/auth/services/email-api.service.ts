@@ -53,95 +53,49 @@ export class EmailApiService {
     email: string,
     code: string,
   ): Promise<boolean> {
-    try {
-      // Получаем API ключ из конфигурации или используем предоставленный
-      const mailerSendApiKey =
-        this.configService.get<string>('MAILERSEND_API_KEY') ||
-        'mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8c67cec6c69912951d4f0c9';
+    // Получаем API ключ из конфигурации или используем предоставленный
+    const mailerSendApiKey =
+      this.configService.get<string>('MAILERSEND_API_KEY') ||
+      'mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d';
 
-      console.log(
-        `[MAILERSEND] Using API key: ${mailerSendApiKey.substring(0, 15)}...`,
-      );
+    console.log(
+      `[MAILERSEND] Using API key: ${mailerSendApiKey.substring(0, 15)}...`,
+    );
 
-      const mailerSend = new MailerSend({
-        apiKey: mailerSendApiKey,
-      });
+    const mailerSend = new MailerSend({
+      apiKey: mailerSendApiKey,
+    });
 
-      console.log(`[MAILERSEND] MailerSend instance created, sending email...`);
+    // Используем только ваш домен
+    const fromEmail =
+      this.configService.get<string>('MAILERSEND_FROM_EMAIL') ||
+      'hello@test-pzkmgq7656vl059v.mlsender.net';
+    const fromName =
+      this.configService.get<string>('MAILERSEND_FROM_NAME') || 'DockMap';
 
-      // Пробуем несколько вариантов sender email
-      const possibleSenders = [
-        {
-          email:
-            this.configService.get<string>('MAILERSEND_FROM_EMAIL') ||
-            'hello@trial-3vz9dlez0jv4kj50.mlsender.net',
-          name:
-            this.configService.get<string>('MAILERSEND_FROM_NAME') || 'DockMap',
-        },
-        {
-          email: 'test-pzkmgq7656vl059v.mlsender.net',
-          name: 'DockMap',
-        },
-        {
-          email: 'test-pzkmgq7656vl059v.mlsender.net',
-          name: 'DockMap',
-        },
-      ];
+    console.log(`[MAILERSEND] Sending from: ${fromEmail}`);
 
-      let lastError;
+    const sentFrom = new Sender(fromEmail, fromName);
+    const recipients = [new Recipient(email, 'User')];
 
-      for (const senderOption of possibleSenders) {
-        try {
-          console.log(`[MAILERSEND] Trying sender: ${senderOption.email}`);
+    const emailParams = new EmailParams()
+      .setFrom(sentFrom)
+      .setTo(recipients)
+      .setSubject('Сброс пароля DockMap')
+      .setHtml(this.getEmailTemplate(code))
+      .setText(`Ваш код для сброса пароля DockMap: ${code}`);
 
-          const sentFrom = new Sender(senderOption.email, senderOption.name);
-          const recipients = [new Recipient(email, 'User')];
+    console.log(`[MAILERSEND] Sending email to: ${email}`);
 
-          // Параметры email
-          const emailParams = new EmailParams()
-            .setFrom(sentFrom)
-            .setTo(recipients)
-            .setSubject('Сброс пароля DockMap')
-            .setHtml(this.getEmailTemplate(code))
-            .setText(`Ваш код для сброса пароля DockMap: ${code}`);
+    const result = await mailerSend.email.send(emailParams);
 
-          console.log(
-            `[MAILERSEND] Sending email to: ${email} from: ${senderOption.email}`,
-          );
+    console.log(`[MAILERSEND] Raw result:`, JSON.stringify(result, null, 2));
 
-          const result = await mailerSend.email.send(emailParams);
-
-          console.log(
-            `[MAILERSEND] Raw result:`,
-            JSON.stringify(result, null, 2),
-          );
-
-          // Проверяем результат
-          if (result) {
-            console.log(
-              `[MAILERSEND] ✅ Email sent successfully with sender: ${senderOption.email}`,
-            );
-            return true;
-          } else {
-            console.error(`[MAILERSEND] No result returned`);
-            lastError = 'No result returned';
-          }
-        } catch (senderError) {
-          console.error(
-            `[MAILERSEND] Error with sender ${senderOption.email}:`,
-            senderError,
-          );
-          lastError = senderError;
-        }
-      }
-
-      // Если все отправители не сработали
-      throw new Error(
-        `All senders failed. Last error: ${JSON.stringify(lastError)}`,
-      );
-    } catch (error) {
-      console.error(`[MAILERSEND] Detailed error:`, error);
-      throw error;
+    if (result) {
+      console.log(`[MAILERSEND] ✅ Email sent successfully`);
+      return true;
+    } else {
+      throw new Error('MailerSend returned no result');
     }
   }
 
@@ -157,93 +111,57 @@ export class EmailApiService {
       `[MAILERSEND HTTP] Using API key: ${mailerSendApiKey.substring(0, 15)}...`,
     );
 
-    // Пробуем разные sender email для HTTP API
-    const possibleSenders = [
-      {
-        email:
-          this.configService.get<string>('MAILERSEND_FROM_EMAIL') ||
-          'hello@trial-3vz9dlez0jv4kj50.mlsender.net',
-        name:
-          this.configService.get<string>('MAILERSEND_FROM_NAME') || 'DockMap',
+    // Используем только ваш домен
+    const fromEmail =
+      this.configService.get<string>('MAILERSEND_FROM_EMAIL') ||
+      'hello@test-pzkmgq7656vl059v.mlsender.net';
+    const fromName =
+      this.configService.get<string>('MAILERSEND_FROM_NAME') || 'DockMap';
+
+    console.log(`[MAILERSEND HTTP] Sending from: ${fromEmail}`);
+
+    const payload = {
+      from: {
+        email: fromEmail,
+        name: fromName,
       },
+      to: [
+        {
+          email: email,
+          name: 'User',
+        },
+      ],
+      subject: 'Сброс пароля DockMap',
+      html: this.getEmailTemplate(code),
+      text: `Ваш код для сброса пароля DockMap: ${code}`,
+    };
+
+    console.log(`[MAILERSEND HTTP] Payload:`, JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(
+      'https://api.mailersend.com/v1/email',
+      payload,
       {
-        email: 'noreply@trial-3vz9dlez0jv4kj50.mlsender.net',
-        name: 'DockMap',
+        headers: {
+          Authorization: `Bearer ${mailerSendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
       },
-      {
-        email: 'test@trial-3vz9dlez0jv4kj50.mlsender.net',
-        name: 'DockMap',
-      },
-    ];
-
-    let lastError;
-
-    for (const sender of possibleSenders) {
-      try {
-        console.log(`[MAILERSEND HTTP] Trying sender: ${sender.email}`);
-
-        const payload = {
-          from: {
-            email: sender.email,
-            name: sender.name,
-          },
-          to: [
-            {
-              email: email,
-              name: 'User',
-            },
-          ],
-          subject: 'Сброс пароля DockMap',
-          html: this.getEmailTemplate(code),
-          text: `Ваш код для сброса пароля DockMap: ${code}`,
-        };
-
-        console.log(
-          `[MAILERSEND HTTP] Payload:`,
-          JSON.stringify(payload, null, 2),
-        );
-
-        const response = await axios.post(
-          'https://api.mailersend.com/v1/email',
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${mailerSendApiKey}`,
-              'Content-Type': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-            timeout: 15000,
-          },
-        );
-
-        console.log(`[MAILERSEND HTTP] Response status:`, response.status);
-        console.log(
-          `[MAILERSEND HTTP] Response data:`,
-          JSON.stringify(response.data, null, 2),
-        );
-
-        if (response.status === 202) {
-          console.log(
-            `[MAILERSEND HTTP] ✅ Email sent successfully with sender: ${sender.email}`,
-          );
-          return true;
-        } else {
-          lastError = `HTTP ${response.status}: ${response.statusText}`;
-          console.error(`[MAILERSEND HTTP] Unexpected status:`, lastError);
-        }
-      } catch (senderError) {
-        console.error(
-          `[MAILERSEND HTTP] Error with sender ${sender.email}:`,
-          senderError?.response?.data || senderError?.message || senderError,
-        );
-        lastError =
-          senderError?.response?.data || senderError?.message || senderError;
-      }
-    }
-
-    throw new Error(
-      `All HTTP senders failed. Last error: ${JSON.stringify(lastError)}`,
     );
+
+    console.log(`[MAILERSEND HTTP] Response status:`, response.status);
+    console.log(
+      `[MAILERSEND HTTP] Response data:`,
+      JSON.stringify(response.data, null, 2),
+    );
+
+    if (response.status === 202) {
+      console.log(`[MAILERSEND HTTP] ✅ Email sent successfully`);
+      return true;
+    } else {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
   }
 
   private getEmailTemplate(code: string): string {

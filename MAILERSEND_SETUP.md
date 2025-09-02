@@ -31,8 +31,8 @@
 
 ```env
 # MailerSend Configuration
-MAILERSEND_API_KEY=mlsn.e596169615b1b18803f8f7c578d6b682b6451cf7a8c67cec6c69912951d4f0c9
-MAILERSEND_FROM_EMAIL=noreply@trial-3vz9dlez0jv4kj50.mlsender.net
+MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d
+MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net
 MAILERSEND_FROM_NAME=DockMap
 ```
 
