@@ -86,14 +86,31 @@ export class EmailApiService {
 
     console.log(`[MAILERSEND] Sending from: ${fromEmail}`);
 
+    // Trial аккаунт может отправлять только на email администратора
+    const adminEmail =
+      this.configService.get<string>('MAILERSEND_ADMIN_EMAIL') ||
+      'kozago.gor@gmail.com'; // Email администратора MailerSend аккаунта
+
+    const actualRecipient = email === adminEmail ? email : adminEmail;
+
+    if (email !== adminEmail) {
+      console.log(
+        `[MAILERSEND] 🔄 Redirecting email from ${email} to admin ${adminEmail} (Trial limitation)`,
+      );
+    }
+
     const sentFrom = new Sender(fromEmail, fromName);
-    const recipients = [new Recipient(email, 'User')];
+    const recipients = [new Recipient(actualRecipient, 'User')];
 
     const emailParams = new EmailParams()
       .setFrom(sentFrom)
       .setTo(recipients)
-      .setSubject('Сброс пароля DockMap')
-      .setHtml(this.getEmailTemplate(code))
+      .setSubject(
+        `Сброс пароля DockMap${email !== adminEmail ? ` (для ${email})` : ''}`,
+      )
+      .setHtml(
+        this.getEmailTemplate(code, email !== adminEmail ? email : undefined),
+      )
       .setText(`Ваш код для сброса пароля DockMap: ${code}`);
 
     console.log(`[MAILERSEND] Sending email to: ${email}`);
@@ -142,6 +159,19 @@ export class EmailApiService {
 
     console.log(`[MAILERSEND HTTP] Sending from: ${fromEmail}`);
 
+    // Trial аккаунт может отправлять только на email администратора
+    const adminEmail =
+      this.configService.get<string>('MAILERSEND_ADMIN_EMAIL') ||
+      'kozago.gor@gmail.com'; // Email администратора MailerSend аккаунта
+
+    const actualRecipient = email === adminEmail ? email : adminEmail;
+
+    if (email !== adminEmail) {
+      console.log(
+        `[MAILERSEND HTTP] 🔄 Redirecting email from ${email} to admin ${adminEmail} (Trial limitation)`,
+      );
+    }
+
     const payload = {
       from: {
         email: fromEmail,
@@ -149,12 +179,15 @@ export class EmailApiService {
       },
       to: [
         {
-          email: email,
+          email: actualRecipient,
           name: 'User',
         },
       ],
-      subject: 'Сброс пароля DockMap',
-      html: this.getEmailTemplate(code),
+      subject: `Сброс пароля DockMap${email !== adminEmail ? ` (для ${email})` : ''}`,
+      html: this.getEmailTemplate(
+        code,
+        email !== adminEmail ? email : undefined,
+      ),
       text: `Ваш код для сброса пароля DockMap: ${code}`,
     };
 
@@ -186,7 +219,15 @@ export class EmailApiService {
     }
   }
 
-  private getEmailTemplate(code: string): string {
+  private getEmailTemplate(code: string, originalEmail?: string): string {
+    const redirectNote = originalEmail
+      ? `<div style="background: #e0f2fe; padding: 15px; border-radius: 6px; border-left: 4px solid #0288d1; margin: 20px 0;">
+        <p style="color: #01579b; margin: 0; font-size: 14px;">
+          📧 <strong>Trial режим:</strong> Это письмо предназначалось для ${originalEmail}, но отправлено на ваш email из-за ограничений Trial аккаунта MailerSend.
+        </p>
+      </div>`
+      : '';
+
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -195,6 +236,8 @@ export class EmailApiService {
         
         <div style="background: #f8fafc; padding: 30px; border-radius: 10px; border: 1px solid #e2e8f0;">
           <h2 style="color: #1e293b; margin-top: 0;">Сброс пароля</h2>
+          
+          ${redirectNote}
           
           <p style="color: #475569; font-size: 16px; line-height: 1.5;">
             Вы запросили сброс пароля для вашего аккаунта DockMap.

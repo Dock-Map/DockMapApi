@@ -34,6 +34,7 @@
 MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d
 MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net
 MAILERSEND_FROM_NAME=DockMap
+MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com
 ```
 
 **Описание переменных:**
@@ -41,6 +42,7 @@ MAILERSEND_FROM_NAME=DockMap
 - `MAILERSEND_API_KEY` - ваш API ключ от MailerSend
 - `MAILERSEND_FROM_EMAIL` - email отправителя (trial домен или ваш верифицированный домен)
 - `MAILERSEND_FROM_NAME` - имя отправителя, отображаемое в письмах
+- `MAILERSEND_ADMIN_EMAIL` - email администратора MailerSend аккаунта (для trial ограничений)
 
 ### 🚀 Развертывание
 
@@ -50,6 +52,7 @@ MAILERSEND_FROM_NAME=DockMap
 railway variables set MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d
 railway variables set MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net
 railway variables set MAILERSEND_FROM_NAME=DockMap
+railway variables set MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com
 ```
 
 #### Docker
@@ -58,6 +61,7 @@ railway variables set MAILERSEND_FROM_NAME=DockMap
 docker run -e MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d \
            -e MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net \
            -e MAILERSEND_FROM_NAME=DockMap \
+           -e MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com \
            your-app
 ```
 
