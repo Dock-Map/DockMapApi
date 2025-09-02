@@ -13,32 +13,52 @@ export class EmailService {
     private emailApiService: EmailApiService,
   ) {
     const emailUser =
-      this.configService.get<string>('EMAIL_USER') || 'your_email@gmail.com';
+      this.configService.get<string>('EMAIL_USER') || 'dock.map@mail.ru';
     const emailProvider = this.getEmailProvider(emailUser);
 
-    // Настройка транспорта в зависимости от провайдера
+    // Получаем пароль для внешних приложений
     const emailPassword =
-      this.configService.get<string>('EMAIL_PASSWORD') || 'your_app_password';
+      this.configService.get<string>('EMAIL_PASSWORD') ||
+      'weghPOZktP2e3Md7Rr37';
 
-    // Удаляем пробелы из App Password (на всякий случай)
+    // Удаляем пробелы из пароля
     const cleanPassword = emailPassword.replace(/\s+/g, '');
 
-    // Настройки для хостинга - пробуем разные порты
     const isProduction = process.env.NODE_ENV === 'production';
 
+    // Настройки для разных провайдеров
     if (emailProvider === 'gmail') {
       this.transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
-        port: isProduction ? 465 : 587, // На хостинге часто блокируют 587
-        secure: isProduction, // true для 465, false для 587
+        port: isProduction ? 465 : 587,
+        secure: isProduction,
         auth: {
           user: emailUser,
           pass: cleanPassword,
         },
-        connectionTimeout: 60000, // 60 секунд
+        connectionTimeout: 60000,
         greetingTimeout: 30000,
         socketTimeout: 60000,
-        // Для хостингов с проблемами SSL
+        ...(isProduction && {
+          tls: {
+            rejectUnauthorized: false,
+          },
+        }),
+      });
+    } else if (emailProvider === 'mail.ru') {
+      // Настройки для Mail.ru согласно документации
+      this.transporter = nodemailer.createTransport({
+        host: this.configService.get<string>('SMTP_HOST') || 'smtp.mail.ru',
+        port: parseInt(this.configService.get<string>('SMTP_PORT') || '465'),
+        secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL/TLS
+        auth: {
+          user: emailUser,
+          pass: cleanPassword,
+        },
+        connectionTimeout: 60000,
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
+        // Дополнительные настройки для Mail.ru
         ...(isProduction && {
           tls: {
             rejectUnauthorized: false,
@@ -46,6 +66,7 @@ export class EmailService {
         }),
       });
     } else {
+      // Для остальных провайдеров (Yandex, и т.д.)
       this.transporter = nodemailer.createTransport({
         service: emailProvider,
         auth: {
@@ -72,7 +93,7 @@ export class EmailService {
       const mailOptions = {
         from:
           this.configService.get<string>('EMAIL_FROM') ||
-          'DockMap <noreply@dockmap.com>',
+          'DockMap <dock.map@mail.ru>',
         to: email,
         subject: 'Сброс пароля DockMap',
         html: `
