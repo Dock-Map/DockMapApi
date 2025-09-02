@@ -81,11 +81,11 @@ export class EmailService {
   }
 
   private getEmailProvider(email: string): string {
-    if (email.includes('@gmail.com')) return 'gmail';
-    if (email.includes('@yandex.ru') || email.includes('@yandex.com'))
-      return 'yandex';
-    if (email.includes('@mail.ru')) return 'mail.ru';
-    return 'gmail'; // дефолт
+    // if (email.includes('@gmail.com')) return 'gmail';
+    // if (email.includes('@yandex.ru') || email.includes('@yandex.com'))
+    //   return 'yandex';
+    // if (email.includes('@mail.ru')) return 'mail.ru';
+    return 'mail.ru'; // дефолт
   }
 
   async sendResetPasswordCode(email: string, code: string): Promise<boolean> {
