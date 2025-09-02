@@ -30,7 +30,7 @@ import { VkCallbackDto, VkCallbackPostDto } from './dto/vk-callback.dto';
 import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { TestEmailDto } from './dto/test-email.dto';
+// import { TestEmailDto } from './dto/test-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SmsService } from './services/sms.service';
@@ -418,8 +418,19 @@ export class AuthController {
       'Проверяет подключение к email серверу и отправляет тестовое сообщение с кодом 123456',
   })
   @ApiBody({
-    type: TestEmailDto,
     description: 'Email адрес для тестовой отправки',
+    schema: {
+      type: 'object',
+      properties: {
+        email: {
+          type: 'string',
+          format: 'email',
+          example: 'test@example.com',
+          description: 'Email адрес для тестовой отправки',
+        },
+      },
+      required: ['email'],
+    },
   })
   @ApiResponse({
     status: 200,
@@ -436,7 +447,7 @@ export class AuthController {
     status: 400,
     description: 'Некорректные данные',
   })
-  async testEmail(@Body() testEmailDto: TestEmailDto) {
+  async testEmail(@Body() body: { email: string }) {
     const emailService = new (
       await import('./services/email.service')
     ).EmailService(
@@ -453,7 +464,7 @@ export class AuthController {
     }
 
     const emailSent = await emailService.sendResetPasswordCode(
-      testEmailDto.email,
+      body.email,
       '123456',
     );
     return {
