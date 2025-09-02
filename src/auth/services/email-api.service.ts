@@ -89,7 +89,7 @@ export class EmailApiService {
     // Trial аккаунт может отправлять только на email администратора
     const adminEmail =
       this.configService.get<string>('MAILERSEND_ADMIN_EMAIL') ||
-      'kozago.gor@gmail.com'; // Email администратора MailerSend аккаунта
+      'ponywebmoriss@gmail.com'; // Email администратора MailerSend аккаунта
 
     const actualRecipient = email === adminEmail ? email : adminEmail;
 
@@ -162,7 +162,7 @@ export class EmailApiService {
     // Trial аккаунт может отправлять только на email администратора
     const adminEmail =
       this.configService.get<string>('MAILERSEND_ADMIN_EMAIL') ||
-      'kozago.gor@gmail.com'; // Email администратора MailerSend аккаунта
+      'ponywebmoriss@gmail.com'; // Email администратора MailerSend аккаунта
 
     const actualRecipient = email === adminEmail ? email : adminEmail;
 

@@ -34,7 +34,7 @@
 MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d
 MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net
 MAILERSEND_FROM_NAME=DockMap
-MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com
+MAILERSEND_ADMIN_EMAIL=ponywebmoriss@gmail.com
 ```
 
 **Описание переменных:**
@@ -52,7 +52,7 @@ MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com
 railway variables set MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d
 railway variables set MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net
 railway variables set MAILERSEND_FROM_NAME=DockMap
-railway variables set MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com
+railway variables set MAILERSEND_ADMIN_EMAIL=ponywebmoriss@gmail.com
 ```
 
 #### Docker
@@ -61,7 +61,7 @@ railway variables set MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com
 docker run -e MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a51a551bad362e59ec67c0d \
            -e MAILERSEND_FROM_EMAIL=hello@test-pzkmgq7656vl059v.mlsender.net \
            -e MAILERSEND_FROM_NAME=DockMap \
-           -e MAILERSEND_ADMIN_EMAIL=kozago.gor@gmail.com \
+           -e MAILERSEND_ADMIN_EMAIL=ponywebmoriss@gmail.com \
            your-app
 ```
 
@@ -85,6 +85,7 @@ docker run -e MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a
 [MAILERSEND SDK] Trying MailerSend SDK...
 [MAILERSEND] Using API key: mlsn.ce978212dc...
 [MAILERSEND] Sending from: hello@test-pzkmgq7656vl059v.mlsender.net
+[MAILERSEND] 🔄 Redirecting email from user@example.com to admin kozago.gor@gmail.com (Trial limitation)
 [MAILERSEND] Sending email to: user@example.com
 [MAILERSEND] Raw result: {"statusCode":202}
 [MAILERSEND] ✅ Email sent successfully
@@ -97,6 +98,7 @@ docker run -e MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a
 [MAILERSEND SDK] Failed: [error details]
 [MAILERSEND HTTP] Trying direct HTTP API...
 [MAILERSEND HTTP] Sending from: hello@test-pzkmgq7656vl059v.mlsender.net
+[MAILERSEND HTTP] 🔄 Redirecting email from user@example.com to admin kozago.gor@gmail.com (Trial limitation)
 [MAILERSEND HTTP] Response status: 202
 [MAILERSEND HTTP] ✅ Email sent successfully
 ```
@@ -113,19 +115,33 @@ docker run -e MAILERSEND_API_KEY=mlsn.ce978212dc34f30cda1fe6bec4d069539a3206709a
 
 - `test-pzkmgq7656vl059v.mlsender.net` → `hello@test-pzkmgq7656vl059v.mlsender.net`
 
-#### 2. API Key Issues
+#### 2. Trial Account Limitations
+
+**ВАЖНО**: Trial аккаунты MailerSend могут отправлять email только на email администратора аккаунта!
+
+- ❌ **Ошибка**: `Trial accounts can only send emails to the administrator's email. #MS42225`
+- ✅ **Решение**: Автоматический redirect на admin email
+
+**Как работает redirect в Trial режиме:**
+
+- Email пытается отправиться на `user@example.com`
+- Система автоматически перенаправляет на `ponywebmoriss@gmail.com`
+- В письме указывается оригинальный получатель
+- В теме письма добавляется `(для user@example.com)`
+
+#### 3. API Key Issues
 
 - Убедитесь, что API ключ действителен в MailerSend панели
 - Проверьте права доступа для токена (должен иметь права на отправку email)
 
-#### 3. Fallback System
+#### 4. Fallback System
 
 Система имеет двойную защиту:
 
 1. **MailerSend SDK** - основной метод
 2. **HTTP API** - fallback при проблемах с SDK
 
-#### 4. Detailed Logging
+#### 5. Detailed Logging
 
 Для отладки включены детальные логи на каждом этапе:
 
