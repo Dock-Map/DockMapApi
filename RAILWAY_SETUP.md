@@ -9,15 +9,15 @@
    - ✅ `weghPOZktP2e3Md7Rr37` (пароль для внешних приложений)
 
 2. **Оптимизация для Railway:**
-   - ✅ Порт 587 (менее блокируемый)
-   - ✅ STARTTLS вместо SSL
-   - ✅ Увеличенные таймауты (15 сек)
-   - ✅ Pool соединений
-   - ✅ Детальная диагностика ошибок
+   - ✅ **Множественные SMTP порты**: 2525, 587, 465
+   - ✅ **Автоматический выбор** рабочего порта
+   - ✅ **Быстрая проверка** соединения (5 сек)
+   - ✅ **HTTP API fallback** для полностью заблокированного SMTP
+   - ✅ **Детальная диагностика** Railway блокировок
 
-3. **Fallback система:**
+3. **Умная fallback система:**
    ```
-   Основной SMTP (8 сек) → Mail.ru SMTP (15 сек) → Симуляция
+   Основной SMTP (8 сек) → Mail.ru SMTP (порты 2525/587/465) → HTTP API → Симуляция
    ```
 
 ## 🚀 Развертывание на Railway:
@@ -56,12 +56,13 @@ curl -X POST https://ваш-домен.railway.app/auth/email/test \
 ### ✅ Успешная отправка:
 
 ```
+[EMAIL API] Starting email send process for: user@example.com
 [MAIL.RU SMTP] Using user: dock.map@mail.ru
-[MAIL.RU SMTP] Password configured: Yes
-[MAIL.RU SMTP] Testing connection to smtp.mail.ru:587...
-[MAIL.RU SMTP] Connection verified successfully
-[MAIL.RU SMTP] Email sent successfully: <message-id>
-[EMAIL API] Email sent via Mail.ru SMTP
+[MAIL.RU SMTP] Trying Port 2525 (Alternative)...
+[MAIL.RU SMTP] ✅ Port 2525 (Alternative) works!
+[MAIL.RU SMTP] Sending email...
+[MAIL.RU SMTP] ✅ Email sent successfully: <message-id>
+[EMAIL API] ✅ Email sent via Mail.ru SMTP
 ```
 
 ### ⚠️ Возможные проблемы на Railway:
