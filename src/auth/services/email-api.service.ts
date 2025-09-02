@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import axios from 'axios';
 
 @Injectable()
 export class EmailApiService {
@@ -12,34 +13,122 @@ export class EmailApiService {
   async sendResetPasswordCode(email: string, code: string): Promise<boolean> {
     console.log(`[RESEND API] Sending email to: ${email}`);
 
+    // Пробуем Resend SDK
     try {
-      const resendApiKey =
-        this.configService.get<string>('RESEND_API_KEY') ||
-        're_LAtYTjtx_HLULz1ymBHcZwuDkj2WzYqGy';
-
-      console.log(
-        `[RESEND API] Using API key: ${resendApiKey.substring(0, 10)}...`,
-      );
-
-      const resend = new Resend(resendApiKey);
-
-      const result = await resend.emails.send({
-        from: 'DockMap <onboarding@resend.dev>',
-        to: [email],
-        subject: 'Сброс пароля DockMap',
-        html: this.getEmailTemplate(code),
-      });
-
-      if (result.error) {
-        throw new Error(`Resend error: ${result.error.message}`);
+      console.log(`[RESEND SDK] Trying Resend SDK...`);
+      const sdkResult = await this.sendViaResendSDK(email, code);
+      if (sdkResult) {
+        console.log(`[RESEND SDK] ✅ Email sent via SDK`);
+        return true;
       }
-
-      console.log(`[RESEND API] ✅ Email sent successfully:`, result.data?.id);
-      return true;
     } catch (error) {
-      console.error('[RESEND API] Failed:', error.message);
-      console.log(`[RESEND API] 📧 Reset code for testing: ${code}`);
-      return true; // Возвращаем true для UX
+      console.error(`[RESEND SDK] Failed:`, error.message);
+    }
+
+    // Fallback к прямому HTTP API
+    try {
+      console.log(`[RESEND HTTP] Trying direct HTTP API...`);
+      const httpResult = await this.sendViaResendHTTP(email, code);
+      if (httpResult) {
+        console.log(`[RESEND HTTP] ✅ Email sent via HTTP API`);
+        return true;
+      }
+    } catch (error) {
+      console.error(`[RESEND HTTP] Failed:`, error.message);
+    }
+
+    console.log(`[RESEND API] 📧 Reset code for testing: ${code}`);
+    return true; // Возвращаем true для UX
+  }
+
+  private async sendViaResendSDK(
+    email: string,
+    code: string,
+  ): Promise<boolean> {
+    // Хардкодим API ключ для Railway
+    const resendApiKey = 're_LAtYTjtx_HLULz1ymBHcZwuDkj2WzYqGy';
+
+    console.log(
+      `[RESEND SDK] Using hardcoded API key: ${resendApiKey.substring(0, 10)}...`,
+    );
+    console.log(`[RESEND SDK] Full key length: ${resendApiKey.length}`);
+
+    const resend = new Resend(resendApiKey);
+
+    console.log(`[RESEND SDK] Resend instance created, sending email...`);
+
+    const result = await resend.emails.send({
+      from: 'DockMap <onboarding@resend.dev>',
+      to: [email],
+      subject: 'Сброс пароля DockMap',
+      html: this.getEmailTemplate(code),
+    });
+
+    console.log(`[RESEND SDK] Raw result:`, JSON.stringify(result, null, 2));
+
+    if (result.error) {
+      console.error(`[RESEND SDK] Resend returned error:`, result.error);
+      throw new Error(`Resend error: ${JSON.stringify(result.error)}`);
+    }
+
+    if (!result.data) {
+      console.error(`[RESEND SDK] No data in result:`, result);
+      throw new Error('Resend returned no data');
+    }
+
+    console.log(`[RESEND SDK] ✅ Email sent successfully:`, result.data.id);
+    return true;
+  }
+
+  private async sendViaResendHTTP(
+    email: string,
+    code: string,
+  ): Promise<boolean> {
+    const resendApiKey = 're_LAtYTjtx_HLULz1ymBHcZwuDkj2WzYqGy';
+
+    console.log(
+      `[RESEND HTTP] Using API key: ${resendApiKey.substring(0, 10)}...`,
+    );
+
+    const payload = {
+      from: 'DockMap <onboarding@resend.dev>',
+      to: [email],
+      subject: 'Сброс пароля DockMap',
+      html: this.getEmailTemplate(code),
+    };
+
+    console.log(`[RESEND HTTP] Payload:`, JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(
+      'https://api.resend.com/emails',
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
+      },
+    );
+
+    console.log(`[RESEND HTTP] Response status:`, response.status);
+    console.log(
+      `[RESEND HTTP] Response data:`,
+      JSON.stringify(response.data, null, 2),
+    );
+
+    if (response.status !== 200) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    if (response.data.id) {
+      console.log(
+        `[RESEND HTTP] ✅ Email sent successfully:`,
+        response.data.id,
+      );
+      return true;
+    } else {
+      throw new Error('No email ID in response');
     }
   }
 
