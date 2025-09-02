@@ -57,11 +57,24 @@ export class EmailApiService {
 
     console.log(`[RESEND SDK] Resend instance created, sending email...`);
 
+    // Для тестирования: если email не является владельцем аккаунта, перенаправляем на владельца
+    const ownerEmail = 'ponywebmoriss@gmail.com';
+    const actualRecipient = email === ownerEmail ? email : ownerEmail;
+
+    if (email !== ownerEmail) {
+      console.log(
+        `[RESEND SDK] 🔄 Redirecting email from ${email} to owner ${ownerEmail} (Resend limitation)`,
+      );
+    }
+
     const result = await resend.emails.send({
-      from: 'DockMap <onboarding@resend.dev>',
-      to: [email],
-      subject: 'Сброс пароля DockMap',
-      html: this.getEmailTemplate(code),
+      from: 'DockMap <ponywebmoriss@gmail.com>', // Используем email владельца аккаунта
+      to: [actualRecipient],
+      subject: `Сброс пароля DockMap${email !== ownerEmail ? ` (для ${email})` : ''}`,
+      html: this.getEmailTemplate(
+        code,
+        email !== ownerEmail ? email : undefined,
+      ),
     });
 
     console.log(`[RESEND SDK] Raw result:`, JSON.stringify(result, null, 2));
@@ -90,11 +103,24 @@ export class EmailApiService {
       `[RESEND HTTP] Using API key: ${resendApiKey.substring(0, 10)}...`,
     );
 
+    // Для тестирования: если email не является владельцем аккаунта, перенаправляем на владельца
+    const ownerEmail = 'ponywebmoriss@gmail.com';
+    const actualRecipient = email === ownerEmail ? email : ownerEmail;
+
+    if (email !== ownerEmail) {
+      console.log(
+        `[RESEND HTTP] 🔄 Redirecting email from ${email} to owner ${ownerEmail} (Resend limitation)`,
+      );
+    }
+
     const payload = {
-      from: 'DockMap <onboarding@resend.dev>',
-      to: [email],
-      subject: 'Сброс пароля DockMap',
-      html: this.getEmailTemplate(code),
+      from: 'DockMap <ponywebmoriss@gmail.com>', // Используем email владельца аккаунта
+      to: [actualRecipient],
+      subject: `Сброс пароля DockMap${email !== ownerEmail ? ` (для ${email})` : ''}`,
+      html: this.getEmailTemplate(
+        code,
+        email !== ownerEmail ? email : undefined,
+      ),
     };
 
     console.log(`[RESEND HTTP] Payload:`, JSON.stringify(payload, null, 2));
@@ -132,7 +158,15 @@ export class EmailApiService {
     }
   }
 
-  private getEmailTemplate(code: string): string {
+  private getEmailTemplate(code: string, originalEmail?: string): string {
+    const redirectNote = originalEmail
+      ? `<div style="background: #e0f2fe; padding: 15px; border-radius: 6px; border-left: 4px solid #0288d1; margin: 20px 0;">
+        <p style="color: #01579b; margin: 0; font-size: 14px;">
+          📧 <strong>Тестирование:</strong> Это письмо предназначалось для ${originalEmail}, но отправлено на ваш email из-за ограничений Resend API в тестовом режиме.
+        </p>
+      </div>`
+      : '';
+
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -141,6 +175,8 @@ export class EmailApiService {
         
         <div style="background: #f8fafc; padding: 30px; border-radius: 10px; border: 1px solid #e2e8f0;">
           <h2 style="color: #1e293b; margin-top: 0;">Сброс пароля</h2>
+          
+          ${redirectNote}
           
           <p style="color: #475569; font-size: 16px; line-height: 1.5;">
             Вы запросили сброс пароля для вашего аккаунта DockMap.
@@ -159,7 +195,7 @@ export class EmailApiService {
             </p>
           </div>
           
-          <p style="color: #475569; font-size: 14px; line-line: 1.5; margin-bottom: 0;">
+          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 0;">
             Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.
           </p>
         </div>
