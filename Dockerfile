@@ -1,42 +1,19 @@
-# Build stage
-FROM node:20 AS builder
+FROM node:22-alpine
+
 WORKDIR /app
 
-# Увеличиваем память для Node.js для сборки
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+COPY *.json ./
 
-# Копируем зависимости и устанавливаем
-COPY package.json package-lock.json ./
-RUN npm ci
+RUN yarn
 
-# Копируем исходные файлы для сборки
-COPY src ./src
-COPY tsconfig.json tsconfig.build.json nest-cli.json ./
+COPY . .
 
-# Сборка приложения
-RUN npm run build
+RUN yarn build
 
-# Production stage  
-FROM node:20-alpine
-WORKDIR /app
+ARG NODE_ENV=development
+# COPY .env.$NODE_ENV .env
 
-# Создаем пользователя для безопасности
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+EXPOSE 3000
 
-# Копируем зависимости и устанавливаем только production
-COPY package.json package-lock.json ./
-RUN npm ci --only=production && npm cache clean --force
-
-# Копируем собранное приложение
-COPY --from=builder /app/dist ./dist
-
-# Меняем владельца файлов
-RUN chown -R nextjs:nodejs /app
-USER nextjs
-
-# Экспонируем порт из переменной окружения (Timeweb устанавливает PORT)
-EXPOSE ${PORT:-3000}
-
-# Запускаем приложение
-CMD ["node", "dist/main.js"] 
+# CMD ["sh", "-c", "yarn migration:run && yarn start:prod"]   это уже на прод будет 
+CMD ["sh", "-c", "yarn start:prod"] 
