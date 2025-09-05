@@ -2,102 +2,43 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
-import { EmailApiService } from './email-api.service';
 
 @Injectable()
 export class EmailService {
   private transporter: Transporter;
 
-  constructor(
-    private configService: ConfigService,
-    private emailApiService: EmailApiService,
-  ) {
+  constructor(private configService: ConfigService) {
     const emailUser =
       this.configService.get<string>('EMAIL_USER') || 'admin@dockmap.ru';
-    const emailProvider = this.getEmailProvider(emailUser);
 
     // Получаем пароль для внешних приложений
     const emailPassword =
-      this.configService.get<string>('EMAIL_PASSWORD') ||
-      'weghPOZktP2e3Md7Rr37';
+      this.configService.get<string>('EMAIL_PASSWORD') || 'j0xpz6kwm2';
 
     // Удаляем пробелы из пароля
     const cleanPassword = emailPassword.replace(/\s+/g, '');
 
     const isProduction = process.env.NODE_ENV === 'production';
 
-    // Настройки для разных провайдеров
-    if (emailProvider === 'gmail') {
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: isProduction ? 465 : 587,
-        secure: isProduction,
-        auth: {
-          user: emailUser,
-          pass: cleanPassword,
-        },
-        connectionTimeout: 10000, // 10 секунд вместо 60
-        greetingTimeout: 5000, // 5 секунд вместо 30
-        socketTimeout: 10000, // 10 секунд вместо 60
-        ...(isProduction && {
-          tls: {
-            rejectUnauthorized: false,
-          },
-        }),
-      });
-    } else if (emailProvider === 'timeweb') {
-      // TimeWeb SMTP настройки
-      this.transporter = nodemailer.createTransport({
-        host: this.configService.get<string>('SMTP_HOST') || 'smtp.timeweb.ru',
-        port: parseInt(this.configService.get<string>('SMTP_PORT') || '465'),
-        secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL обязательно
-        auth: {
-          user: emailUser,
-          pass: cleanPassword,
-        },
-        connectionTimeout: 10000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
-        tls: {
-          rejectUnauthorized: false,
-        },
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-      });
-    } else {
-      // Mail.ru SMTP настройки (по умолчанию)
-      // Mail.ru сам доставляет письма на Gmail, Yandex, Outlook и др.
-      this.transporter = nodemailer.createTransport({
-        host: this.configService.get<string>('SMTP_HOST') || 'smtp.mail.ru',
-        port: parseInt(this.configService.get<string>('SMTP_PORT') || '465'),
-        secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL/TLS обязательно
-        auth: {
-          user: emailUser,
-          pass: cleanPassword,
-        },
-        connectionTimeout: 10000, // 10 секунд вместо 60
-        greetingTimeout: 5000, // 5 секунд вместо 30
-        socketTimeout: 10000, // 10 секунд вместо 60
-        // Настройки для стабильной работы на хостинге
-        tls: {
-          rejectUnauthorized: false, // Для совместимости с хостингами
-        },
-        // Дополнительные настройки для Mail.ru
-        pool: true, // Используем пул соединений для производительности
-        maxConnections: 5,
-        maxMessages: 100,
-      });
-    }
-  }
-
-  private getEmailProvider(email: string): string {
-    if (email.includes('@gmail.com')) return 'gmail';
-    if (email.includes('@dockmap.ru')) return 'timeweb';
-    if (email.includes('@yandex.ru') || email.includes('@yandex.com'))
-      return 'yandex';
-    if (email.includes('@mail.ru')) return 'mail.ru';
-    return 'mail.ru'; // дефолт
+    // TimeWeb SMTP настройки
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('SMTP_HOST') || 'smtp.timeweb.ru',
+      port: parseInt(this.configService.get<string>('SMTP_PORT') || '465'),
+      secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL обязательно
+      auth: {
+        user: emailUser,
+        pass: cleanPassword,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
+      tls: {
+        rejectUnauthorized: false,
+      },
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+    });
   }
 
   async sendResetPasswordCode(email: string, code: string): Promise<boolean> {
@@ -128,8 +69,8 @@ export class EmailService {
         `[EMAIL] SMTP connection verified in ${Date.now() - startTime}ms`,
       );
 
-      // Mail.ru SMTP автоматически доставляет письма на любые домены:
-      // NestJS → Mail.ru SMTP → Mail.ru доставляет → Gmail/Yandex/Outlook/etc
+      // TimeWeb SMTP доставляет письма на любые домены:
+      // NestJS → TimeWeb SMTP → TimeWeb доставляет → Gmail/Yandex/Outlook/etc
       const mailOptions = {
         from:
           this.configService.get<string>('EMAIL_FROM') ||
@@ -204,45 +145,15 @@ DockMap - Сброс пароля
       // Логируем детали ошибки для диагностики
       if (error.message.includes('550')) {
         console.error(
-          `[EMAIL] Mail.ru SMTP error 550 - возможно аккаунт dock.map@mail.ru имеет ограничения`,
+          `[EMAIL] TimeWeb SMTP error 550 - возможно аккаунт admin@dockmap.ru имеет ограничения`,
         );
         console.log(
-          `[EMAIL] Попробуйте использовать другой email или настроить API ключи`,
+          `[EMAIL] Проверьте настройки почтового ящика в панели TimeWeb`,
         );
       }
 
-      // Быстрый fallback к API сервисам
-      console.log(`[EMAIL] Falling back to API services for: ${email}`);
-      const fallbackStartTime = Date.now();
-
-      try {
-        if (this.emailApiService) {
-          const result = await this.emailApiService.sendResetPasswordCode(
-            email,
-            code,
-          );
-          console.log(
-            `[EMAIL] API fallback completed in ${Date.now() - fallbackStartTime}ms`,
-          );
-          return result;
-        } else {
-          console.warn(
-            `[EMAIL] EmailApiService not available, simulating success`,
-          );
-          console.log(
-            `[EMAIL] Reset code for ${email}: ${code} (для тестирования)`,
-          );
-          return true; // Временно возвращаем true для тестирования
-        }
-      } catch (fallbackError) {
-        console.error(
-          `[EMAIL] All methods failed after ${Date.now() - startTime}ms:`,
-          fallbackError?.message || 'Unknown error',
-        );
-        // В случае полного провала возвращаем true для тестирования
-        console.log(`[EMAIL] Simulation: Reset code for ${email}: ${code}`);
-        return true;
-      }
+      console.error(`[EMAIL] TimeWeb SMTP failed: ${error.message}`);
+      return false;
     }
   }
 
