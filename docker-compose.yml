@@ -11,18 +11,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3000:3000'
-    depends_on:
-      - db
-    networks:
-      - app-network
-  db:
-    image: postgres
-    env_file:
-      - ./.env.production
-    ports:
-      - '5488:5432'
-    networks:
-      - app-network
 
 networks:
   app-network:
