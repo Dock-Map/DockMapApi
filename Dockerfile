@@ -13,6 +13,8 @@ COPY . .
 
 RUN yarn install --production=false && yarn build
 
+COPY .env.production .env.production
+
 EXPOSE 3000
 
 CMD ["yarn", "start:prod"] 
