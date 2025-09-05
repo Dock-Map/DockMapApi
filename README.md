@@ -298,3 +298,67 @@ src/
 - **Twilio** - SMS верификация
 - **Yandex Cloud Object Storage** - хранение файлов
 - **Swagger** - документация API
+
+## Настройка почты TimeWeb
+
+### SMTP настройки для отправки писем
+
+**Сервер отправки:** `smtp.timeweb.ru`
+
+- **Порт SSL:** 465 (рекомендуется)
+- **Порт STARTTLS:** 25 или 2525
+- **Шифрование:** SSL/TLS обязательно
+
+### POP3 настройки для получения писем
+
+**Сервер приема:** `pop3.timeweb.ru`
+
+- **Порт SSL:** 995 (рекомендуется)
+- **Порт STARTTLS:** 110
+
+### IMAP настройки для получения писем
+
+**Сервер приема:** `imap.timeweb.ru`
+
+- **Порт SSL:** 993 (рекомендуется)
+- **Порт STARTTLS:** 143
+
+### Переменные окружения для TimeWeb
+
+```bash
+# Основные настройки почты
+EMAIL_USER=admin@dockmap.ru
+EMAIL_PASSWORD=ваш_пароль_от_почтового_ящика
+EMAIL_FROM=DockMap <admin@dockmap.ru>
+
+# SMTP настройки TimeWeb
+SMTP_HOST=smtp.timeweb.ru
+SMTP_PORT=465
+SMTP_SECURE=true
+```
+
+### Что нужно сделать:
+
+1. **Создать почтовый ящик** в панели TimeWeb:
+   - Логин: `admin@dockmap.ru`
+   - Пароль: создать надежный пароль
+
+2. **Настроить переменные окружения** в вашем `.env` файле:
+
+   ```bash
+   EMAIL_USER=admin@dockmap.ru
+   EMAIL_PASSWORD=ваш_пароль_от_почтового_ящика
+   EMAIL_FROM=DockMap <admin@dockmap.ru>
+   SMTP_HOST=smtp.timeweb.ru
+   SMTP_PORT=465
+   SMTP_SECURE=true
+   ```
+
+3. **Проверить работу** - система автоматически определит домен `@dockmap.ru` и будет использовать TimeWeb SMTP
+
+### Важные моменты:
+
+- **SSL обязательно** - TimeWeb требует SSL/TLS соединение
+- **Порт 465** - стандартный SSL порт для SMTP
+- **Авторизация** - используйте полный email как логин
+- **Пароль** - пароль от почтового ящика (не от панели управления)

@@ -16,4 +16,4 @@ ARG NODE_ENV=development
 EXPOSE 3000
 
 # CMD ["sh", "-c", "yarn migration:run && yarn start:prod"]   это уже на прод будет 
-CMD ["sh", "-c", "yarn start:prod"] 
+CMD ["sh", "-c", "yarn start:prod"]

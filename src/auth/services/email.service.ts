@@ -13,7 +13,7 @@ export class EmailService {
     private emailApiService: EmailApiService,
   ) {
     const emailUser =
-      this.configService.get<string>('EMAIL_USER') || 'dock.map@mail.ru';
+      this.configService.get<string>('EMAIL_USER') || 'admin@dockmap.ru';
     const emailProvider = this.getEmailProvider(emailUser);
 
     // Получаем пароль для внешних приложений
@@ -45,6 +45,26 @@ export class EmailService {
           },
         }),
       });
+    } else if (emailProvider === 'timeweb') {
+      // TimeWeb SMTP настройки
+      this.transporter = nodemailer.createTransport({
+        host: this.configService.get<string>('SMTP_HOST') || 'smtp.timeweb.ru',
+        port: parseInt(this.configService.get<string>('SMTP_PORT') || '465'),
+        secure: this.configService.get<string>('SMTP_SECURE') !== 'false', // SSL обязательно
+        auth: {
+          user: emailUser,
+          pass: cleanPassword,
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
+        tls: {
+          rejectUnauthorized: false,
+        },
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+      });
     } else {
       // Mail.ru SMTP настройки (по умолчанию)
       // Mail.ru сам доставляет письма на Gmail, Yandex, Outlook и др.
@@ -72,10 +92,11 @@ export class EmailService {
   }
 
   private getEmailProvider(email: string): string {
-    // if (email.includes('@gmail.com')) return 'gmail';
-    // if (email.includes('@yandex.ru') || email.includes('@yandex.com'))
-    //   return 'yandex';
-    // if (email.includes('@mail.ru')) return 'mail.ru';
+    if (email.includes('@gmail.com')) return 'gmail';
+    if (email.includes('@dockmap.ru')) return 'timeweb';
+    if (email.includes('@yandex.ru') || email.includes('@yandex.com'))
+      return 'yandex';
+    if (email.includes('@mail.ru')) return 'mail.ru';
     return 'mail.ru'; // дефолт
   }
 
@@ -112,7 +133,7 @@ export class EmailService {
       const mailOptions = {
         from:
           this.configService.get<string>('EMAIL_FROM') ||
-          'DockMap <dock.map@mail.ru>',
+          'DockMap <admin@dockmap.ru>',
         to: email, // Может быть любой email: @gmail.com, @yandex.ru, @outlook.com
         subject: 'Сброс пароля DockMap',
         html: `
