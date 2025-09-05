@@ -5,17 +5,14 @@ WORKDIR /app
 # Увеличиваем лимит памяти Node.js для сборки
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-COPY *.json ./
+COPY package.json yarn.lock ./
 
-RUN yarn
+RUN yarn install --frozen-lockfile
 
 COPY . .
 
 RUN yarn build
 
-ARG NODE_ENV=production
-# COPY .env.$NODE_ENV .env
-
 EXPOSE 3000
 
-CMD ["sh", "-c", "yarn start:prod"] 
+CMD ["yarn", "start:prod"] 
