@@ -9,7 +9,7 @@ import { UserService } from '../../user/user.service';
 import { AuthProvider, User } from '../../user/entities/user.entity';
 import { UserRole } from '../../shared/types/user.role';
 import { AuthResponseDto } from '../dto/auth-response.dto';
-import { SmsService } from './sms.service';
+// import { SmsService } from './sms.service';
 import { EmailService } from './email.service';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
@@ -44,14 +44,15 @@ export class AuthService {
   constructor(
     private tokenService: TokenService,
     private userService: UserService,
-    private smsService: SmsService,
+    // private smsService: SmsService,
     private emailService: EmailService,
     private configService: ConfigService,
     @InjectRepository(VerificationCode)
     private verificationCodeRepository: Repository<VerificationCode>,
   ) {}
 
-  // Универсальная авторизация через SMS
+  // Универсальная авторизация через SMS - ЗАКОММЕНТИРОВАНО
+  /*
   async authenticateWithSms(
     phone: string,
     code: string,
@@ -89,6 +90,7 @@ export class AuthService {
 
     return this.generateAuthTokens(user);
   }
+  */
 
   getTelegramOauthLink() {
     const botId = this.configService.get<string>('TELEGRAM_BOT_ID');
@@ -307,6 +309,8 @@ export class AuthService {
     }
   }
 
+  // SMS методы закомментированы
+  /*
   async sendSms(phone: string): Promise<{ message: string }> {
     const result = await this.smsService.sendVerificationCode(phone);
     return { message: result.message };
@@ -319,6 +323,7 @@ export class AuthService {
   async getVerificationCode(phone: string): Promise<{ code: string } | null> {
     return await this.smsService.getVerificationCode(phone);
   }
+  */
 
   // Только для тестирования - получение кода сброса пароля по email
   async getPasswordResetCode(email: string): Promise<{ code: string } | null> {

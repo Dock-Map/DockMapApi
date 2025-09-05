@@ -21,8 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './services/auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { SendSmsDto } from './dto/send-sms.dto';
-import { VerifySmsDto } from './dto/verify-sms.dto';
+// import { SendSmsDto } from './dto/send-sms.dto';
+// import { VerifySmsDto } from './dto/verify-sms.dto';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { EmailRegisterDto } from './dto/email-register.dto';
 import { EmailLoginDto } from './dto/email-login.dto';
@@ -33,7 +33,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 // import { TestEmailDto } from './dto/test-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
-import { SmsService } from './services/sms.service';
+// import { SmsService } from './services/sms.service';
 import { TelegramAuthGuard } from './guards/telegram-auth.guard';
 
 interface AuthenticatedRequest extends Request {
@@ -45,7 +45,7 @@ interface AuthenticatedRequest extends Request {
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private smsService: SmsService,
+    // private smsService: SmsService,
   ) {}
 
   // EMAIL/PASSWORD РЕГИСТРАЦИЯ И АВТОРИЗАЦИЯ
@@ -117,7 +117,8 @@ export class AuthController {
     return this.authService.authenticateWithEmail(loginDto, ipAddress);
   }
 
-  // SMS АВТОРИЗАЦИЯ
+  // SMS АВТОРИЗАЦИЯ - ЗАКОММЕНТИРОВАНО
+  /*
   @ApiTags('SMS Authentication')
   @Post('sms/send')
   @ApiOperation({ summary: 'Отправить SMS с кодом верификации' })
@@ -178,6 +179,7 @@ export class AuthController {
   async getBalance() {
     return await this.smsService.getBalance();
   }
+  */
 
   @Get('telegram/oauth-link')
   @ApiOperation({ summary: 'Получить ссылку для авторизации через Telegram' })
