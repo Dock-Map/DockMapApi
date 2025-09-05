@@ -11,7 +11,7 @@ RUN yarn install --frozen-lockfile
 
 COPY . .
 
-RUN yarn build
+RUN yarn install --production=false && yarn build
 
 EXPOSE 3000
 
