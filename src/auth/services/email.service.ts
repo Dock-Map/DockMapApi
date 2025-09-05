@@ -74,7 +74,7 @@ export class EmailService {
       const mailOptions = {
         from:
           this.configService.get<string>('EMAIL_FROM') ||
-          'DockMap <admin@dockmap.ru>',
+          'admin@dockmap.ru',
         to: email, // Может быть любой email: @gmail.com, @yandex.ru, @outlook.com
         subject: 'Сброс пароля DockMap',
         html: `
