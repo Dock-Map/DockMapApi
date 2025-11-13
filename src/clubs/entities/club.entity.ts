@@ -8,6 +8,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { ShipType } from 'src/shared/types/ship';
+import { ClubParkingLocation } from 'src/shared/types/clubs';
 
 @Entity()
 export class Club {
@@ -25,6 +27,21 @@ export class Club {
 
   @Column({ nullable: true })
   email: string;
+
+  @Column({ nullable: true })
+  pricePerMonth: number;
+
+  @Column({ nullable: true })
+  pricePerYear: number;
+
+  @Column({ nullable: true })
+  pricePerDay: number;
+
+  @Column({ type: 'enum', enum: ShipType, array: true, nullable: true })
+  shipType: ShipType[];
+
+  @Column({ type: 'enum', enum: ClubParkingLocation, array: true, nullable: true })
+  parkingLocations: ClubParkingLocation[];
 
   @Column({ type: 'text', nullable: true })
   description: string;
