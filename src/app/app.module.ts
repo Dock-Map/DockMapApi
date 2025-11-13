@@ -6,9 +6,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HealthCheckModule } from 'src/healthCheck/healthCheck.module';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { ClubsModule } from 'src/clubs/clubs.module';
 // import { SharedModule } from 'src/shared/shared.module';
 import { User } from 'src/user/entities/user.entity';
 import { VerificationCode } from 'src/auth/entities/verification-code.entity';
+import { Club } from 'src/clubs/entities/club.entity';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { VerificationCode } from 'src/auth/entities/verification-code.entity';
           entities: [
             User,
             VerificationCode,
+            Club,
           ],
         };
       },
@@ -43,6 +46,7 @@ import { VerificationCode } from 'src/auth/entities/verification-code.entity';
     HealthCheckModule,
     UserModule,
     AuthModule,
+    ClubsModule,
     // SharedModule,
   ],
   controllers: [AppController],

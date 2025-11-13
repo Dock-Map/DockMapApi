@@ -5,7 +5,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Club } from 'src/clubs/entities/club.entity';
 
 export enum AuthProvider {
   SMS = 'sms',
@@ -73,6 +75,9 @@ export class User {
 
   @Column({ nullable: true })
   lastLoginAt: Date;
+
+  @OneToMany(() => Club, (club) => club.owner)
+  ownersClubs: Club[];
 
   @CreateDateColumn()
   createdAt: Date;
