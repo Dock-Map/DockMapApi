@@ -5,11 +5,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { ShipType } from 'src/shared/types/ship';
 import { ClubParkingLocation } from 'src/shared/types/clubs';
+import { Tariff } from './tariff.entity';
+import { Service } from './service.entity';
 
 @Entity()
 export class Club {
@@ -70,6 +73,12 @@ export class Club {
 
   @Column({ name: 'userId' })
   userId: string;
+
+  @OneToMany(() => Tariff, (tariff) => tariff.club, { cascade: true, eager: false })
+  tariffs: Tariff[];
+
+  @OneToMany(() => Service, (service) => service.club, { cascade: true, eager: false })
+  services: Service[];
 
   @CreateDateColumn()
   createdAt: Date;

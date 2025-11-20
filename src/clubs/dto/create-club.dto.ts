@@ -5,7 +5,11 @@ import {
   IsNumber,
   IsArray,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateTariffNestedDto } from './create-tariff-nested.dto';
+import { CreateServiceNestedDto } from './create-service-nested.dto';
 
 export class CreateClubDto {
   @ApiProperty({ description: 'ID пользователя-владельца клуба' })
@@ -68,4 +72,24 @@ export class CreateClubDto {
   @IsOptional()
   @IsNumber()
   longitude?: number;
+
+  @ApiPropertyOptional({
+    description: 'Тарифы клуба',
+    type: [CreateTariffNestedDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateTariffNestedDto)
+  tariffs?: CreateTariffNestedDto[];
+
+  @ApiPropertyOptional({
+    description: 'Сервисы клуба',
+    type: [CreateServiceNestedDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateServiceNestedDto)
+  services?: CreateServiceNestedDto[];
 }

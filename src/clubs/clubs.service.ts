@@ -9,6 +9,10 @@ import { Club } from './entities/club.entity';
 import { UserMetadata } from 'src/shared/decorators/get-user.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { DEFAULT_PAGE, DEFAULT_LIMIT } from 'src/shared/constants';
+import { TariffsService } from './services/tariffs.service';
+import { ServicesService } from './services/services.service';
+import { CreateTariffDto } from './dto/create-tariff.dto';
+import { CreateServiceDto } from './dto/create-service.dto';
 
 @Injectable()
 export class ClubsService {
@@ -17,31 +21,77 @@ export class ClubsService {
     private readonly clubRepository: Repository<Club>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly tariffsService: TariffsService,
+    private readonly servicesService: ServicesService,
   ) {}
 
   async create(createClubDto: CreateClubDto): Promise<Club> {
-    const club = this.clubRepository.create(createClubDto);
-    await this.clubRepository.save(club);
-    return await this.findOne(club.id);
+    const { tariffs, services, ...clubData } = createClubDto;
+    
+    const club = this.clubRepository.create(clubData);
+    const savedClub = await this.clubRepository.save(club);
+
+    // Создаем тарифы, если они указаны
+    if (tariffs && tariffs.length > 0) {
+      const tariffsToCreate: CreateTariffDto[] = tariffs.map((tariff) => ({
+        ...tariff,
+        clubId: savedClub.id,
+      }));
+      await this.tariffsService.createMany(tariffsToCreate);
+    }
+
+    // Создаем сервисы, если они указаны
+    if (services && services.length > 0) {
+      const servicesToCreate: CreateServiceDto[] = services.map((service) => ({
+        ...service,
+        clubId: savedClub.id,
+      }));
+      await this.servicesService.createMany(servicesToCreate);
+    }
+
+    return await this.findOne(savedClub.id);
   }
 
   async createMany(createManyClubsDto: CreateManyClubsDto): Promise<Club[]> {
     const { userId, clubs } = createManyClubsDto;
     
-    const clubsToCreate = clubs.map((clubData) =>
-      this.clubRepository.create({
-        ...clubData,
+    const clubsToCreate = clubs.map((clubData) => {
+      const { tariffs, services, ...clubFields } = clubData;
+      return this.clubRepository.create({
+        ...clubFields,
         userId,
-      }),
-    );
+      });
+    });
 
     const savedClubs = await this.clubRepository.save(clubsToCreate);
+
+    // Создаем тарифы и сервисы для каждого клуба
+    for (let i = 0; i < savedClubs.length; i++) {
+      const clubData = clubs[i];
+      const savedClub = savedClubs[i];
+
+      if (clubData.tariffs && clubData.tariffs.length > 0) {
+        const tariffsToCreate: CreateTariffDto[] = clubData.tariffs.map((tariff) => ({
+          ...tariff,
+          clubId: savedClub.id,
+        }));
+        await this.tariffsService.createMany(tariffsToCreate);
+      }
+
+      if (clubData.services && clubData.services.length > 0) {
+        const servicesToCreate: CreateServiceDto[] = clubData.services.map((service) => ({
+          ...service,
+          clubId: savedClub.id,
+        }));
+        await this.servicesService.createMany(servicesToCreate);
+      }
+    }
     
     // Загружаем созданные клубы с безопасными данными владельца
     const clubIds = savedClubs.map((club) => club.id);
     return await this.clubRepository.find({
       where: { id: In(clubIds) },
-      relations: ['owner'],
+      relations: ['owner', 'tariffs', 'services'],
       select: {
         owner: {
           id: true,
@@ -187,7 +237,7 @@ export class ClubsService {
   async findOne(id: string): Promise<Club> {
     const club = await this.clubRepository.findOne({
       where: { id },
-      relations: ['owner'],
+      relations: ['owner', 'tariffs', 'services'],
       select: {
         owner: {
           id: true,
@@ -245,6 +295,11 @@ export class ClubsService {
     if (club.userId !== user.userId) {
       throw new ForbiddenException('You are not allowed to delete this club');
     }
+    
+    // Удаляем связанные тарифы и сервисы (cascade должно сработать, но на всякий случай)
+    await this.tariffsService.removeByClubId(id);
+    await this.servicesService.removeByClubId(id);
+    
     await this.clubRepository.remove(club);
   }
 }

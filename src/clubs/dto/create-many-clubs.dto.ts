@@ -6,6 +6,8 @@ import {
   IsOptional,
   IsNumber,
 } from 'class-validator';
+import { CreateTariffNestedDto } from './create-tariff-nested.dto';
+import { CreateServiceNestedDto } from './create-service-nested.dto';
 
 class ClubDataDto {
   @ApiProperty({ description: 'Название клуба' })
@@ -65,6 +67,28 @@ class ClubDataDto {
   @IsOptional()
   @IsNumber()
   longitude?: number;
+
+  @ApiProperty({
+    description: 'Тарифы клуба',
+    type: [CreateTariffNestedDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateTariffNestedDto)
+  tariffs?: CreateTariffNestedDto[];
+
+  @ApiProperty({
+    description: 'Сервисы клуба',
+    type: [CreateServiceNestedDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateServiceNestedDto)
+  services?: CreateServiceNestedDto[];
 }
 
 export class CreateManyClubsDto {
