@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Club } from 'src/clubs/entities/club.entity';
+import { Ship } from 'src/ships/entities/ship.entity';
 
 export enum AuthProvider {
   SMS = 'sms',
@@ -78,6 +79,9 @@ export class User {
 
   @OneToMany(() => Club, (club) => club.owner)
   ownersClubs: Club[];
+
+  @OneToMany(() => Ship, (ship) => ship.user)
+  ships: Ship[];
 
   @CreateDateColumn()
   createdAt: Date;

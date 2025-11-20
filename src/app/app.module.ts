@@ -7,10 +7,12 @@ import { HealthCheckModule } from 'src/healthCheck/healthCheck.module';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { ClubsModule } from 'src/clubs/clubs.module';
+import { ShipsModule } from 'src/ships/ships.module';
 // import { SharedModule } from 'src/shared/shared.module';
 import { User } from 'src/user/entities/user.entity';
 import { VerificationCode } from 'src/auth/entities/verification-code.entity';
 import { Club } from 'src/clubs/entities/club.entity';
+import { Ship } from 'src/ships/entities/ship.entity';
 
 @Module({
   imports: [
@@ -39,6 +41,7 @@ import { Club } from 'src/clubs/entities/club.entity';
             User,
             VerificationCode,
             Club,
+            Ship,
           ],
         };
       },
@@ -47,6 +50,7 @@ import { Club } from 'src/clubs/entities/club.entity';
     UserModule,
     AuthModule,
     ClubsModule,
+    ShipsModule,
     // SharedModule,
   ],
   controllers: [AppController],
