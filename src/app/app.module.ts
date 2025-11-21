@@ -12,6 +12,8 @@ import { ShipsModule } from 'src/ships/ships.module';
 import { User } from 'src/user/entities/user.entity';
 import { VerificationCode } from 'src/auth/entities/verification-code.entity';
 import { Club } from 'src/clubs/entities/club.entity';
+import { Tariff } from 'src/clubs/entities/tariff.entity';
+import { Service } from 'src/clubs/entities/service.entity';
 import { Ship } from 'src/ships/entities/ship.entity';
 
 @Module({
@@ -42,6 +44,8 @@ import { Ship } from 'src/ships/entities/ship.entity';
             User,
             VerificationCode,
             Club,
+            Tariff,
+            Service,
             Ship,
           ],
         };
