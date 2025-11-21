@@ -26,6 +26,7 @@ import { Ship } from 'src/ships/entities/ship.entity';
       useFactory: (configService: ConfigService) => {
         return {
           type: 'postgres',
+          url: configService.get<string>('DATABASE_URL'),
           host: configService.get<string>('DATABASE_HOST'),
           port: configService.get<number>('DATABASE_PORT'),
           username: configService.get<string>('DATABASE_USER'),
