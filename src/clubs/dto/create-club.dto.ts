@@ -6,6 +6,7 @@ import {
   IsArray,
   IsUUID,
   ValidateNested,
+  IsEmail,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateTariffNestedDto } from './create-tariff-nested.dto';
@@ -30,7 +31,7 @@ export class CreateClubDto {
 
   @ApiPropertyOptional({ description: 'Email клуба' })
   @IsOptional()
-  @IsString()
+  @IsEmail()
   email?: string;
 
   @ApiPropertyOptional({ description: 'Описание клуба' })
