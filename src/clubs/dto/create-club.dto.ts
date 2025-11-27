@@ -8,7 +8,7 @@ import {
   ValidateNested,
   IsEmail,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { CreateTariffNestedDto } from './create-tariff-nested.dto';
 import { CreateServiceNestedDto } from './create-service-nested.dto';
 
@@ -31,6 +31,7 @@ export class CreateClubDto {
 
   @ApiPropertyOptional({ description: 'Email клуба' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' || value === null) ? undefined : value)
   @IsEmail()
   email?: string;
 
