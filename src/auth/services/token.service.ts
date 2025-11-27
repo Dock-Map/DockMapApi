@@ -13,7 +13,7 @@ export class TokenService {
   async generateAccessToken(userId: string, email: string): Promise<string> {
     return this.jwtService.signAsync(
       {
-        userId,
+        id:userId,
         email,
       },
       {
@@ -27,7 +27,7 @@ export class TokenService {
   async generateRefreshToken(userId: string, email: string): Promise<string> {
     return this.jwtService.signAsync(
       {
-        userId,
+        id: userId,
         email,
       },
       {
@@ -39,7 +39,7 @@ export class TokenService {
     );
   }
 
-  async verifyRefreshToken(refreshToken: string): Promise<{ userId: string }> {
+  async verifyRefreshToken(refreshToken: string): Promise<{ id: string }> {
     return this.jwtService.verifyAsync(refreshToken, {
       secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
     });
@@ -47,7 +47,7 @@ export class TokenService {
 
   async verifyAccessToken(
     accessToken: string,
-  ): Promise<{ userId: string; email: string }> {
+  ): Promise<{ id: string; email: string }> {
     return this.jwtService.verifyAsync(accessToken, {
       secret: this.configService.get<string>('JWT_SECRET'),
     });

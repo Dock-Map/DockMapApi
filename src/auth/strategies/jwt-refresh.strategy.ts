@@ -18,7 +18,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  validate(user: { userId: string }) {
+  validate(user: { id: string }) {
     return user;
   }
 }
