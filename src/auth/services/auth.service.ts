@@ -257,7 +257,7 @@ export class AuthService {
 
       // Проверяем валидность refresh token
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
-      const user = await this.userService.findById(payload.userId);
+      const user = await this.userService.findById(payload.id);
 
       if (!user) {
         throw new UnauthorizedException('Пользователь не найден');
@@ -297,7 +297,7 @@ export class AuthService {
   async validateRefreshToken(refreshToken: string): Promise<boolean> {
     try {
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
-      const user = await this.userService.findById(payload.userId);
+      const user = await this.userService.findById(payload.id);
 
       if (!user || !user.refreshTokenHash) {
         return false;
