@@ -13,6 +13,7 @@ import { ShipType } from 'src/shared/types/ship';
 import { ClubParkingLocation } from 'src/shared/types/clubs';
 import { Tariff } from './tariff.entity';
 import { Service } from './service.entity';
+import { Image } from 'src/image/entities/image.entity';
 
 @Entity()
 export class Club {
@@ -49,8 +50,15 @@ export class Club {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @ManyToOne(() => Image, { nullable: true, eager: false, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'imageId' })
+  image: Image;
+
+  @Column({ name: 'imageId', nullable: true })
+  imageId: string;
+
   @Column({ nullable: true })
-  imageUrl: string;
+  imageUrl: string; // Оставляем для обратной совместимости и как fallback
 
   @Column({ default: 0 })
   totalSpots: number;

@@ -40,6 +40,22 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+  minio:
+    image: minio/minio:latest
+    restart: always
+    env_file:
+      - .env.development
+    ports:
+      - ${MINIO_PORT}:9000
+      - ${MINIO_CONSOLE_PORT}:9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - dev-app-network
 
 networks:
   dev-app-network:
@@ -47,3 +63,4 @@ networks:
 
 volumes:
   pg_dev_data:
+  minio-data:

@@ -8,13 +8,14 @@ import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { ClubsModule } from 'src/clubs/clubs.module';
 import { ShipsModule } from 'src/ships/ships.module';
-// import { SharedModule } from 'src/shared/shared.module';
 import { User } from 'src/user/entities/user.entity';
 import { VerificationCode } from 'src/auth/entities/verification-code.entity';
 import { Club } from 'src/clubs/entities/club.entity';
 import { Tariff } from 'src/clubs/entities/tariff.entity';
 import { Service } from 'src/clubs/entities/service.entity';
 import { Ship } from 'src/ships/entities/ship.entity';
+import { ImageModule } from 'src/image/image.module';
+import { Image } from 'src/image/entities/image.entity';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { Ship } from 'src/ships/entities/ship.entity';
             Tariff,
             Service,
             Ship,
+            Image,
           ],
         };
       },
@@ -56,7 +58,7 @@ import { Ship } from 'src/ships/entities/ship.entity';
     AuthModule,
     ClubsModule,
     ShipsModule,
-    // SharedModule,
+    ImageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -12,7 +12,7 @@ import { Request } from 'express';
 
 interface AuthenticatedRequest extends Request {
   user: {
-    userId: string;
+    id: string;
     email: string;
     name: string;
     phone: string;
@@ -37,12 +37,12 @@ export class UserController {
     @Req() req: AuthenticatedRequest,
   ) {
     const userData = req.user;
-    if (!userData?.userId) {
+    if (!userData?.id) {
       throw new Error('Пользователь не найден');
     }
 
     const updatedUser = await this.userService.completeRegistration(
-      userData.userId,
+      userData.id,
       completeRegistrationDto.cityId,
       completeRegistrationDto.role,
     );

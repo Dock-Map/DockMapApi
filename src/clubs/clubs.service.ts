@@ -13,6 +13,8 @@ import { TariffsService } from './services/tariffs.service';
 import { ServicesService } from './services/services.service';
 import { CreateTariffDto } from './dto/create-tariff.dto';
 import { CreateServiceDto } from './dto/create-service.dto';
+import { ImageService } from 'src/image/image.service';
+import { Image } from 'src/image/entities/image.entity';
 
 @Injectable()
 export class ClubsService {
@@ -23,12 +25,23 @@ export class ClubsService {
     private readonly userRepository: Repository<User>,
     private readonly tariffsService: TariffsService,
     private readonly servicesService: ServicesService,
+    private readonly imageService: ImageService,
   ) {}
 
-  async create(createClubDto: CreateClubDto): Promise<Club> {
+  async create(createClubDto: CreateClubDto, imageFile?: Express.Multer.File): Promise<Club> {
     const { tariffs, services, ...clubData } = createClubDto;
     
-    const club = this.clubRepository.create(clubData);
+    let image: Image | null = null;
+    if (imageFile) {
+      image = await this.imageService.create(imageFile, 'clubs');
+    }
+
+    const club = this.clubRepository.create({
+      ...clubData,
+      image: image || undefined, // Устанавливаем связь напрямую через объект
+      imageId: image?.id,
+      imageUrl: image?.url,
+    });
     const savedClub = await this.clubRepository.save(club);
 
     // Создаем тарифы, если они указаны
@@ -91,7 +104,7 @@ export class ClubsService {
     const clubIds = savedClubs.map((club) => club.id);
     return await this.clubRepository.find({
       where: { id: In(clubIds) },
-      relations: ['owner', 'tariffs', 'services'],
+      relations: ['owner', 'tariffs', 'services', 'image'],
       select: {
         owner: {
           id: true,
@@ -102,6 +115,18 @@ export class ClubsService {
           telegramUsername: true,
           isPhoneVerified: true,
           isEmailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        image: {
+          id: true,
+          filename: true,
+          originalName: true,
+          mimeType: true,
+          size: true,
+          key: true,
+          url: true,
+          bucket: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -123,6 +148,7 @@ export class ClubsService {
     const queryBuilder = this.clubRepository
       .createQueryBuilder('club')
       .leftJoinAndSelect('club.owner', 'owner')
+      .leftJoinAndSelect('club.image', 'image')
       .select([
         'club.id',
         'club.name',
@@ -135,6 +161,7 @@ export class ClubsService {
         'club.shipType',
         'club.parkingLocations',
         'club.description',
+        'club.imageId',
         'club.imageUrl',
         'club.totalSpots',
         'club.availableSpots',
@@ -144,6 +171,18 @@ export class ClubsService {
         'club.userId',
         'club.createdAt',
         'club.updatedAt',
+      ])
+      .addSelect([
+        'image.id',
+        'image.filename',
+        'image.originalName',
+        'image.mimeType',
+        'image.size',
+        'image.key',
+        'image.url',
+        'image.bucket',
+        'image.createdAt',
+        'image.updatedAt',
       ])
       .addSelect([
         'owner.id',
@@ -237,7 +276,7 @@ export class ClubsService {
   async findOne(id: string): Promise<Club> {
     const club = await this.clubRepository.findOne({
       where: { id },
-      relations: ['owner', 'tariffs', 'services'],
+      relations: ['owner', 'tariffs', 'services', 'image'],
       select: {
         owner: {
           id: true,
@@ -248,6 +287,18 @@ export class ClubsService {
           telegramUsername: true,
           isPhoneVerified: true,
           isEmailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        image: {
+          id: true,
+          filename: true,
+          originalName: true,
+          mimeType: true,
+          size: true,
+          key: true,
+          url: true,
+          bucket: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -262,7 +313,7 @@ export class ClubsService {
   async findByUserId(userId: string): Promise<Club[]> {
     return await this.clubRepository.find({
       where: { userId },
-      relations: ['owner'],
+      relations: ['owner', 'image'],
       select: {
         owner: {
           id: true,
@@ -273,6 +324,18 @@ export class ClubsService {
           telegramUsername: true,
           isPhoneVerified: true,
           isEmailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        image: {
+          id: true,
+          filename: true,
+          originalName: true,
+          mimeType: true,
+          size: true,
+          key: true,
+          url: true,
+          bucket: true,
           createdAt: true,
           updatedAt: true,
         },
